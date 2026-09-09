@@ -2,7 +2,7 @@
 
 Application statique (une seule page HTML, aucun serveur, aucune dépendance) pour préparer les entraînements du club :
 
-- **Exercices** : créer des fiches d'exercice (but, objectifs, consignes, durée), les lier à un schéma tactique, les exporter/importer en JSON, et assembler une séance complète.
+- **Exercices** : créer des fiches d'exercice (but, objectifs, consignes, durée), les classer par catégorie (Échauffement, Technique, Renforcement, Tactique, Jeu), les filtrer, les lier à un schéma tactique, les exporter/importer en JSON, et assembler une séance complète. C'est une vraie bibliothèque réutilisable d'une séance à l'autre, pas une liste jetable.
 - **Schémas tactiques** : dessiner sur un terrain (dodgeball par défaut, ou volleyball/basketball/football/handball/badminton/rugby pour varier les entraînements) avec joueurs, plots, flèches, zones, textes et notes.
 - **Export Word** : chaque séance sauvegardée peut être exportée en `.doc` (HTML) avec sommaire cliquable, prêt à imprimer ou partager.
 
@@ -46,6 +46,7 @@ Le logo officiel du club (`public/brand/logo-256.png` dans le repo `kdc-web`, re
 - **Annuler / Rétablir sur le dessin de schéma** : chaque élément ajouté ou supprimé sur le terrain (joueur, flèche, zone, plot...) pousse un état dans un historique. Boutons dédiés « ↩️ Annuler » / « ↪️ Rétablir » dans le panneau Actions, ou raccourcis clavier `Ctrl+Z` / `Ctrl+Y` (`Ctrl+Shift+Z` fonctionne aussi pour rétablir). L'historique repart de zéro à chaque chargement d'un schéma sauvegardé.
 - **Accessibilité clavier** : les onglets « Exercices » / « Créer des Schémas » sont désormais de vrais `<button role="tab">` navigables au clavier (avec `aria-selected` à jour), les plots de la liste sont sélectionnables au clavier (`Tab` puis `Entrée`/`Espace`), tous les boutons icône-seule (suppression d'exercice, de plot) ont un `aria-label` explicite, et un contour de focus visible (`:focus-visible`) apparaît sur tous les éléments interactifs pour la navigation au clavier.
 - **Gestion proactive du stockage local** : un indicateur (« Stockage local : X Ko (~Y%) ») s'affiche en temps réel dans l'onglet Schémas, avec un code couleur (vert / orange dès 70% / rouge dès 90%) — pour voir venir la limite avant qu'elle ne bloque une sauvegarde. Les miniatures de schéma sont désormais générées en JPEG compressé à taille réduite (450×300, qualité 70%) plutôt qu'en PNG plein format (900×600), ce qui réduit fortement l'empreinte de chaque schéma sauvegardé.
+- **Bibliothèque d'exercices par catégorie** : chaque exercice a désormais une catégorie obligatoire (🔥 Échauffement, 🎯 Technique, 💪 Renforcement, 🧠 Tactique, 🎮 Jeu). Des filtres au-dessus de la grille (avec compteur par catégorie) permettent de retrouver rapidement les exercices d'un type donné plutôt que de faire défiler une liste plate. Les exercices importés d'avant cet ajout tombent automatiquement dans « Non classé ».
 
 ## Limites connues / axes d'amélioration
 

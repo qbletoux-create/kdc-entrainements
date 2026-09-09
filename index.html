@@ -173,6 +173,39 @@
             font-size: 1em;
         }
 
+        .category-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .category-filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid var(--kdc-ecume);
+            background: var(--kdc-nacre);
+            color: var(--kdc-abysse);
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-size: .8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+            cursor: pointer;
+            transition: background .2s, color .2s, border-color .2s;
+        }
+        .category-filter-btn:hover { background: var(--kdc-ecume-light); }
+        .category-filter-btn.active { background: var(--cat-color, var(--kdc-marine)); border-color: var(--cat-color, var(--kdc-marine)); color: var(--cat-text, #fff); }
+        .category-filter-btn:focus-visible { outline: 3px solid var(--kdc-marine); outline-offset: 2px; }
+
+        .category-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: .65em;
+            font-weight: 800;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
         .exercise-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -658,6 +691,7 @@
                     <button class="btn btn-teal  add-exercise-btn" onclick="saveCompleteSession()">💾 Sauvegarder la séance</button>
                 </div>
             </div>
+            <div id="categoryFilters" class="category-filters" role="tablist" aria-label="Filtrer les exercices par catégorie"></div>
             <div id="exerciseGrid" class="exercise-grid"></div>
 
             <div class="saved-sessions">
@@ -773,6 +807,17 @@
                 <input type="text" id="exerciseIcon" maxlength="2" placeholder="Ex: 🎯">
             </div>
             <div class="form-group">
+                <label for="exerciseCategory">Catégorie *</label>
+                <select id="exerciseCategory" required>
+                    <option value="" disabled selected>-- Choisir une catégorie --</option>
+                    <option value="echauffement">🔥 Échauffement</option>
+                    <option value="technique">🎯 Technique</option>
+                    <option value="renforcement">💪 Renforcement</option>
+                    <option value="tactique">🧠 Tactique</option>
+                    <option value="jeu">🎮 Jeu</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="exerciseBut">But</label>
                 <textarea id="exerciseBut" placeholder="Quel est l'objectif de cet exercice ?"></textarea>
             </div>
@@ -881,20 +926,68 @@ function switchTab(name, el) {
    EXERCISES
 ═══════════════════════════════════════════════════ */
 let customExercises = ls.get('customExercises', []);
+let currentExerciseFilter = 'all';
+
+// Catégories fixes (échauffement, technique, renforcement, tactique, jeu) —
+// un exercice importé d'avant l'ajout de ce champ (ou sans catégorie choisie)
+// tombe dans 'non-classe' plutôt que de planter l'affichage.
+const CATEGORIES = {
+    echauffement: { label: 'Échauffement', icon: '🔥', color: '#fdc503', text: '#243455' },
+    technique:    { label: 'Technique',    icon: '🎯', color: '#015394', text: '#ffffff' },
+    renforcement: { label: 'Renforcement', icon: '💪', color: '#243455', text: '#ffffff' },
+    tactique:     { label: 'Tactique',     icon: '🧠', color: '#f8bf4e', text: '#243455' },
+    jeu:          { label: 'Jeu',          icon: '🎮', color: '#2e8b57', text: '#ffffff' },
+    'non-classe': { label: 'Non classé',   icon: '📋', color: '#9aa5b1', text: '#ffffff' }
+};
+
+function buildCategoryFilters() {
+    const bar = document.getElementById('categoryFilters');
+    if (!bar) return;
+    const counts = { all: customExercises.length };
+    Object.keys(CATEGORIES).forEach(k => counts[k] = 0);
+    customExercises.forEach(ex => {
+        const cat = CATEGORIES[ex.category] ? ex.category : 'non-classe';
+        counts[cat] = (counts[cat] || 0) + 1;
+    });
+    const entries = [['all', { label: 'Tous', icon: '📚', color: 'var(--kdc-marine)', text: '#ffffff' }], ...Object.entries(CATEGORIES)];
+    bar.innerHTML = entries
+        .filter(([key]) => key === 'all' || counts[key] > 0)
+        .map(([key, c]) => `
+        <button type="button" class="category-filter-btn${currentExerciseFilter === key ? ' active' : ''}"
+                style="--cat-color:${c.color};--cat-text:${c.text};"
+                role="tab" aria-selected="${currentExerciseFilter === key}"
+                onclick="setExerciseFilter('${key}')">${c.icon} ${c.label} (${counts[key] || 0})</button>
+    `).join('');
+}
+
+function setExerciseFilter(key) {
+    currentExerciseFilter = key;
+    displayExercises();
+}
 
 function displayExercises() {
+    buildCategoryFilters();
     const grid = document.getElementById('exerciseGrid');
     grid.innerHTML = '';
+    const filtered = currentExerciseFilter === 'all'
+        ? customExercises
+        : customExercises.filter(ex => (CATEGORIES[ex.category] ? ex.category : 'non-classe') === currentExerciseFilter);
+
     if (!customExercises.length) {
         grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px;">Aucun exercice — cliquez sur ➕ pour commencer.</div>';
         return;
     }
-    customExercises.forEach(ex => {
+    if (!filtered.length) {
+        grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px;">Aucun exercice dans cette catégorie.</div>';
+        return;
+    }
+    filtered.forEach(ex => {
+        const cat = CATEGORIES[ex.category] || CATEGORIES['non-classe'];
         const card = document.createElement('div');
         card.className = 'exercise-card';
         card.innerHTML = `
             <button class="delete-exercise-btn" onclick="deleteExercise('${ex.id}')" aria-label="Supprimer l'exercice ${escapeHtml(ex.name)}">✕</button>
-            <h3>${escapeHtml(ex.icon || '📋')} ${escapeHtml(ex.name)} <span class="custom-badge">Perso</span></h3>
+            <h3>${escapeHtml(ex.icon || '📋')} ${escapeHtml(ex.name)} <span class="category-badge" style="background:${cat.color};color:${cat.text};">${cat.icon} ${cat.label}</span></h3>
             ${ex.but       ? `<p><strong>🎯 But :</strong> ${escapeHtml(ex.but)}</p>` : ''}
             ${ex.objectifs ? `<p><strong>📌 Objectifs :</strong> ${escapeHtml(ex.objectifs)}</p>` : ''}
             <p><strong>📋 Consignes :</strong> ${escapeHtml(ex.description)}</p>
@@ -937,6 +1030,7 @@ function createExercise(e) {
         id:           'custom-' + Date.now(),
         name:         document.getElementById('exerciseName').value,
         icon:         document.getElementById('exerciseIcon').value || '📋',
+        category:     document.getElementById('exerciseCategory').value || 'non-classe',
         but:          document.getElementById('exerciseBut').value,
         objectifs:    document.getElementById('exerciseObjectifs').value,
         description:  document.getElementById('exerciseDescription').value,
@@ -1028,6 +1122,7 @@ function importExercises(event) {
                     id:           'custom-' + Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2, 7),
                     name:         ex.name,
                     icon:         ex.icon || '📋',
+                    category:     CATEGORIES[ex.category] ? ex.category : 'non-classe',
                     but:          ex.but || '',
                     objectifs:    ex.objectifs || '',
                     description:  ex.description || '',
@@ -1864,6 +1959,7 @@ function exportSessionToWord(idx) {
     <a name="exercice-${i+1}" style="display:block;"></a>
     <div class="exercise">
         <div class="exercise-title">${escapeHtml(ex.icon||'📍')} ${i+1}. ${escapeHtml(ex.name)}</div>
+        ${ex.category && CATEGORIES[ex.category] ? `<div class="exercise-detail"><strong>🏷️ Catégorie :</strong> ${escapeHtml(CATEGORIES[ex.category].label)}</div>` : ''}
         <div class="exercise-detail"><strong>⏱️ Durée :</strong> ${Number(ex.duration)||0} minutes</div>
         ${ex.but       ? `<div class="exercise-detail"><strong>🎯 But :</strong> ${escapeHtml(ex.but)}</div>` : ''}
         ${ex.objectifs ? `<div class="exercise-detail"><strong>📌 Objectifs :</strong> ${escapeHtml(ex.objectifs)}</div>` : ''}
