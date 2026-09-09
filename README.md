@@ -10,7 +10,7 @@ Application statique (une seule page HTML, aucun serveur, aucune dépendance) po
 
 Aucune installation : ouvrez `index.html` dans un navigateur, ou servez le dossier avec n'importe quel serveur statique (GitHub Pages, par exemple).
 
-**Important : toutes les données (exercices, schémas, séances) sont stockées dans le `localStorage` du navigateur.** Rien n'est envoyé sur un serveur, mais rien n'est partagé entre coachs/appareils non plus — voir la section Limites ci-dessous. Pensez à utiliser régulièrement le bouton **« Exporter les exercices »** pour garder une sauvegarde du travail.
+**Les données (exercices, schémas, séances) sont synchronisées entre coachs** via un webhook n8n auto-hébergé (voir section Synchronisation ci-dessous). Le `localStorage` du navigateur reste utilisé comme cache local/hors-ligne — l'app fonctionne même sans connexion, et se resynchronise dès que possible.
 
 ## Charte graphique
 
@@ -35,6 +35,20 @@ Le logo officiel du club (`public/brand/logo-256.png` dans le repo `kdc-web`, re
 2. Déposez-le dans ce dépôt sous `assets/logo.png`.
 3. Dans `index.html`, remplacez le `<div class="header-badge">17</div>` par `<img src="assets/logo.png" alt="Krakens Dodgeball Club" class="header-badge" style="border-radius:0;background:none;">` (ajustez la classe/taille si besoin).
 
+## Synchronisation multi-coachs
+
+Les exercices, schémas et séances sont partagés entre tous les coachs via un workflow n8n (**« KDC - Sync Entrainements »**, auto-hébergé sur `n8n.laboiteaoutia.fr`) qui expose 9 routes webhook (GET/POST/DELETE × exercices/schémas/séances) adossées à 3 [Data Tables](https://docs.n8n.io/data-tables/) n8n (`kdc_exercises`, `kdc_schemas`, `kdc_sessions`).
+
+**Fonctionnement :**
+- Au chargement de la page (et via le bouton **« 🔄 Actualiser »**), l'app récupère les données du serveur et les affiche — le serveur est la source de vérité.
+- Chaque création/suppression (exercice, schéma, séance) est aussitôt poussée au serveur en arrière-plan, sans bloquer l'action locale.
+- Si le réseau est indisponible, l'app continue de fonctionner avec les dernières données connues en `localStorage` (indicateur "⚠️ Hors ligne" affiché) ; les modifications faites hors-ligne restent locales tant qu'aucune synchro n'a réussi.
+- **Pas de fusion fine en cas de modifications concurrentes** : un "Actualiser" remplace entièrement les données locales par celles du serveur. Pour un club à quelques coachs avec peu d'éditions simultanées, ce n'est pas un problème en pratique ; ça le deviendrait avec un usage plus intensif.
+
+**Accès :** chaque coach doit renseigner une fois la **clé de synchro** (bouton **« 🔑 Clé de synchro »**, mémorisée ensuite dans son navigateur) — demandez-la à Quentin. Sans clé, l'app fonctionne uniquement en local (comme avant la synchro).
+
+**Sécurité :** la clé est vérifiée par n8n sur chaque appel (`options.onlyRunIf` sur le nœud Webhook) — une requête avec une clé absente ou incorrecte reçoit une réponse `200` vide sans qu'aucune donnée ne soit lue ni écrite. La clé elle-même est en clair dans le workflow n8n (visible uniquement par vous en tant que propriétaire de l'instance) — suffisant pour ce contexte (club amateur, données non sensibles), mais une vraie authentification par credential n8n dédié (chiffré) serait l'étape suivante si besoin d'un niveau de sécurité supérieur.
+
 ## Corrections apportées à la version initiale
 
 - **Faille XSS** : le nom, les consignes, les notes, les plots et les schémas provenaient directement du `localStorage` ou d'un fichier JSON importé et étaient injectés tels quels via `innerHTML`. Un exercice importé avec un nom du type `<img src=x onerror=...>` aurait exécuté du code arbitraire dans le navigateur du coach. Tout texte utilisateur est désormais échappé (`escapeHtml`) avant affichage.
@@ -50,7 +64,7 @@ Le logo officiel du club (`public/brand/logo-256.png` dans le repo `kdc-web`, re
 
 ## Limites connues / axes d'amélioration
 
-- **Pas de synchronisation entre appareils.** Chaque navigateur a ses propres données. Pour une utilisation par plusieurs coachs, il faudrait soit un petit backend (ex. un Airtable ou une base de données via n8n) pour centraliser exercices et séances, soit au minimum une routine "exporter/importer" partagée. C'est le chantier le plus structurant restant — un choix d'architecture à faire avant de s'y attaquer.
-- **`localStorage` reste plafonné (~5-10 Mo)** malgré la compression des miniatures. Au-delà de plusieurs dizaines de schémas, le stockage peut encore se remplir — l'indicateur de stockage prévient avant que ça arrive, mais une migration vers IndexedDB (limite bien plus haute) resterait la solution définitive.
-- **Pas d'authentification.** N'importe qui avec le lien (si hébergé publiquement, ex. GitHub Pages) peut utiliser l'outil, mais chacun a ses propres données locales — il n'y a pas de fuite d'un coach à l'autre, juste pas de partage non plus.
+- **Pas de fusion fine en cas de modifications concurrentes** (voir section Synchronisation ci-dessus) — dernier "Actualiser" gagne.
+- **`localStorage` reste plafonné (~5-10 Mo)** malgré la compression des miniatures — sert maintenant de cache, la limite est donc moins critique qu'avant la synchro, mais reste un point de vigilance si le club grossit beaucoup.
+- **Clé de synchro en clair dans le workflow n8n** (voir section Synchronisation ci-dessus) — acceptable pour ce contexte, mais pas une vraie authentification chiffrée.
 - **Logo à intégrer manuellement** (voir section Logo ci-dessus).

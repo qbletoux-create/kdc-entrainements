@@ -689,8 +689,11 @@
                     <button class="btn btn-blue  add-exercise-btn" onclick="exportExercises()">📤 Exporter les exercices</button>
                     <input type="file" id="importExercisesInput" accept="application/json,.json" style="display:none" onchange="importExercises(event)">
                     <button class="btn btn-teal  add-exercise-btn" onclick="saveCompleteSession()">💾 Sauvegarder la séance</button>
+                    <button class="btn btn-blue  add-exercise-btn" onclick="configureSyncKey()">🔑 Clé de synchro</button>
+                    <button class="btn btn-blue  add-exercise-btn" onclick="syncFetchAll(true)">🔄 Actualiser</button>
                 </div>
             </div>
+            <div id="syncStatus" style="text-align:center;font-size:.85em;color:#666;margin-bottom:10px;"></div>
             <div id="categoryFilters" class="category-filters" role="tablist" aria-label="Filtrer les exercices par catégorie"></div>
             <div id="exerciseGrid" class="exercise-grid"></div>
 
@@ -899,6 +902,122 @@ function escapeHtml(str) {
     }[c]));
 }
 
+/* ═══════════════════════════════════════════════════
+   SYNCHRONISATION MULTI-COACHS
+   Backend : webhook n8n (Data Tables) — voir README pour l'archi.
+   localStorage reste la source rapide/hors-ligne ; le serveur est
+   la source de vérité au chargement (dernier "Actualiser" gagne,
+   pas de fusion fine en cas de modifications concurrentes).
+═══════════════════════════════════════════════════ */
+const SYNC_BASE_URL = 'https://n8n.laboiteaoutia.fr/webhook/kdc-sync';
+
+function getSyncKey() { return localStorage.getItem('kdcSyncKey') || ''; }
+function setSyncStatus(msg, color) {
+    const el = document.getElementById('syncStatus');
+    if (el) { el.textContent = msg; el.style.color = color || '#666'; }
+}
+
+function configureSyncKey() {
+    const current = getSyncKey();
+    const key = prompt('Clé de synchro (donnée par le club) :', current);
+    if (key === null) return;
+    localStorage.setItem('kdcSyncKey', key.trim());
+    showToast('🔑 Clé enregistrée — actualisation...');
+    syncFetchAll(true);
+}
+
+async function syncRequest(method, resource, { body, id } = {}) {
+    const key = getSyncKey();
+    if (!key) throw new Error('Aucune clé de synchro configurée');
+    let url = `${SYNC_BASE_URL}/${resource}`;
+    if (method === 'DELETE' && id) url += `?id=${encodeURIComponent(id)}`;
+    const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'x-kdc-key': key },
+        body: body ? JSON.stringify(body) : undefined
+    });
+    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+    const text = await res.text();
+    return text ? JSON.parse(text) : [];
+}
+
+// Envoie une création/modification en arrière-plan. N'empêche jamais
+// l'action locale de réussir — la synchro est un bonus, pas un blocage.
+async function syncPush(resource, body) {
+    try {
+        await syncRequest('POST', resource, { body });
+        setSyncStatus('✅ Synchronisé', 'var(--kdc-success)');
+    } catch (err) {
+        setSyncStatus('⚠️ Non synchronisé (' + err.message + ')', 'var(--kdc-danger)');
+    }
+}
+
+async function syncRemove(resource, id) {
+    try {
+        await syncRequest('DELETE', resource, { id });
+        setSyncStatus('✅ Synchronisé', 'var(--kdc-success)');
+    } catch (err) {
+        setSyncStatus('⚠️ Non synchronisé (' + err.message + ')', 'var(--kdc-danger)');
+    }
+}
+
+function exerciseFromServerRow(row) {
+    let linkedSchema = null;
+    try { linkedSchema = row.linkedSchema ? JSON.parse(row.linkedSchema) : null; } catch { linkedSchema = null; }
+    return {
+        id: row.extId, name: row.name, icon: row.icon, category: row.category,
+        but: row.but, objectifs: row.objectifs, description: row.description,
+        duration: Number(row.duration) || 0, linkedSchema
+    };
+}
+function schemaFromServerRow(row) {
+    const parse = (s, fb) => { try { return JSON.parse(s); } catch { return fb; } };
+    return {
+        id: row.extId, name: row.name,
+        elements: parse(row.elements, []), plots: parse(row.plots, []), notes: parse(row.notes, []),
+        thumbnail: row.thumbnail || '', date: row.schemaDate
+    };
+}
+function sessionFromServerRow(row) {
+    const parse = (s, fb) => { try { return JSON.parse(s); } catch { return fb; } };
+    return {
+        id: row.extId, name: row.name, date: row.sessionDate, datetime: row.datetime,
+        exercises: parse(row.exercises, []), schemas: parse(row.schemas, []),
+        timestamp: Number(row.timestamp) || 0
+    };
+}
+
+// Le serveur devient la source de vérité au chargement / sur "Actualiser".
+// showErrors=false au démarrage (silencieux si pas encore de clé configurée).
+async function syncFetchAll(showErrors) {
+    if (!getSyncKey()) {
+        if (showErrors) showToast('⚠️ Configure ta clé de synchro d\'abord (🔑)', 'var(--kdc-ambre-dark)');
+        return;
+    }
+    setSyncStatus('🔄 Synchronisation...', '#666');
+    try {
+        const [exRows, scRows, seRows] = await Promise.all([
+            syncRequest('GET', 'exercises'),
+            syncRequest('GET', 'schemas'),
+            syncRequest('GET', 'sessions')
+        ]);
+        customExercises = exRows.map(exerciseFromServerRow);
+        savedSchemas    = scRows.map(schemaFromServerRow);
+        savedSessions   = seRows.map(sessionFromServerRow);
+        ls.set('customExercises', customExercises);
+        ls.set('dodgeballSchemasComplete', savedSchemas);
+        ls.set('dodgeballCompleteSessions', savedSessions);
+        displayExercises();
+        displaySavedSchemas();
+        displaySavedSessions();
+        setSyncStatus('✅ Synchronisé avec le serveur', 'var(--kdc-success)');
+        if (showErrors) showToast('✅ Données actualisées depuis le serveur !');
+    } catch (err) {
+        setSyncStatus('⚠️ Hors ligne — données locales utilisées (' + err.message + ')', 'var(--kdc-danger)');
+        if (showErrors) showToast('❌ Synchro impossible : ' + err.message, 'var(--kdc-danger)');
+    }
+}
+
 function showToast(msg, color = 'var(--kdc-success)') {
     const t = document.createElement('div');
     t.className = 'toast';
@@ -1043,6 +1162,7 @@ function createExercise(e) {
     displayExercises();
     closeExerciseModal();
     showToast('✅ Exercice créé avec succès !');
+    syncPush('exercises', customExercises[customExercises.length - 1]);
 }
 
 function deleteExercise(id) {
@@ -1050,6 +1170,7 @@ function deleteExercise(id) {
     customExercises = customExercises.filter(ex => ex.id !== id);
     ls.set('customExercises', customExercises);
     displayExercises();
+    syncRemove('exercises', id);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1092,6 +1213,8 @@ function importExercises(event) {
 
             let count = 0;
             let schemaCount = 0;
+            const newlyImportedExercises = [];
+            const newlyImportedSchemas = [];
             list.forEach((ex, i) => {
                 if (!ex || !ex.name) return;
 
@@ -1101,14 +1224,17 @@ function importExercises(event) {
                 if (ex.linkedSchema && ex.linkedSchema.name) {
                     const already = savedSchemas.find(s => s.name === ex.linkedSchema.name);
                     if (!already) {
-                        savedSchemas.push({
+                        const importedSchema = {
+                            id:        ex.linkedSchema.id || 'schema-' + Date.now() + '-' + i,
                             name:      ex.linkedSchema.name,
                             elements:  ex.linkedSchema.elements || [],
                             plots:     ex.linkedSchema.plots    || [],
                             notes:     ex.linkedSchema.notes    || [],
                             thumbnail: ex.linkedSchema.thumbnail || '',
                             date:      ex.linkedSchema.date || new Date().toLocaleString('fr-FR')
-                        });
+                        };
+                        savedSchemas.push(importedSchema);
+                        newlyImportedSchemas.push(importedSchema);
                         schemaCount++;
                     }
                     linked = {
@@ -1118,7 +1244,7 @@ function importExercises(event) {
                     };
                 }
 
-                customExercises.push({
+                const importedExercise = {
                     id:           'custom-' + Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2, 7),
                     name:         ex.name,
                     icon:         ex.icon || '📋',
@@ -1128,7 +1254,9 @@ function importExercises(event) {
                     description:  ex.description || '',
                     duration:     parseInt(ex.duration) || 0,
                     linkedSchema: linked
-                });
+                };
+                customExercises.push(importedExercise);
+                newlyImportedExercises.push(importedExercise);
                 count++;
             });
 
@@ -1142,6 +1270,12 @@ function importExercises(event) {
             }
             const schemaMsg = schemaCount ? ` (dont ${schemaCount} schéma${schemaCount > 1 ? 's' : ''} ajouté${schemaCount > 1 ? 's' : ''})` : '';
             showToast(`✅ ${count} exercice${count > 1 ? 's' : ''} importé${count > 1 ? 's' : ''}${schemaMsg} !`);
+            // Pousse les nouveautés vers le serveur en séquence (évite de
+            // saturer le webhook si le fichier importé contient beaucoup d'items).
+            (async () => {
+                for (const s of newlyImportedSchemas) await syncPush('schemas', s);
+                for (const e of newlyImportedExercises) await syncPush('exercises', e);
+            })();
         } catch (err) {
             showToast('❌ Fichier invalide : ' + err.message, 'var(--kdc-danger)');
         } finally {
@@ -1784,14 +1918,16 @@ function saveSchema() {
     const name = prompt('Nom du schéma :');
     if (!name) return;
 
-    savedSchemas.push({
+    const schema = {
+        id: 'schema-' + Date.now(),
         name,
         elements: JSON.parse(JSON.stringify(elements)),
         plots:    JSON.parse(JSON.stringify(plots)),
         notes:    JSON.parse(JSON.stringify(notes)),
         thumbnail: makeThumbnail(),
         date:     new Date().toLocaleString('fr-FR')
-    });
+    };
+    savedSchemas.push(schema);
     if (!ls.set('dodgeballSchemasComplete', savedSchemas)) {
         showToast('⚠️ Stockage local plein — supprime un ancien schéma pour libérer de la place', 'var(--kdc-danger)');
         savedSchemas.pop();
@@ -1799,6 +1935,7 @@ function saveSchema() {
     }
     displaySavedSchemas();
     showToast('✅ Schéma sauvegardé avec succès !');
+    syncPush('schemas', schema);
 }
 
 function displaySavedSchemas() {
@@ -1841,9 +1978,11 @@ function loadSchema(i) {
 
 function deleteSchema(i) {
     if (!confirm(`Supprimer le schéma "${savedSchemas[i].name}" ?`)) return;
+    const removedId = savedSchemas[i].id;
     savedSchemas.splice(i, 1);
     ls.set('dodgeballSchemasComplete', savedSchemas);
     displaySavedSchemas();
+    if (removedId) syncRemove('schemas', removedId);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1854,15 +1993,16 @@ let savedSessions = ls.get('dodgeballCompleteSessions', []);
 function saveCompleteSession() {
     const name = prompt('Nom de la séance :');
     if (!name) return;
-    savedSessions.unshift({
-        id:        Date.now(),
+    const session = {
+        id:        'session-' + Date.now(),
         name,
         date:      new Date().toLocaleDateString('fr-FR'),
         datetime:  new Date().toISOString(),
         exercises: JSON.parse(JSON.stringify(customExercises)),
         schemas:   JSON.parse(JSON.stringify(savedSchemas)),
         timestamp: Date.now()
-    });
+    };
+    savedSessions.unshift(session);
     if (!ls.set('dodgeballCompleteSessions', savedSessions)) {
         showToast('⚠️ Stockage local plein — supprime une ancienne séance pour libérer de la place', 'var(--kdc-danger)');
         savedSessions.shift();
@@ -1870,6 +2010,7 @@ function saveCompleteSession() {
     }
     displaySavedSessions();
     showToast(`✅ Séance "${name}" sauvegardée avec succès !`);
+    syncPush('sessions', session);
 }
 
 function displaySavedSessions() {
@@ -1918,9 +2059,11 @@ function loadSession(i) {
 
 function deleteSession(i) {
     if (!confirm(`Supprimer la séance "${savedSessions[i].name}" ?`)) return;
+    const removedId = savedSessions[i].id;
     savedSessions.splice(i, 1);
     ls.set('dodgeballCompleteSessions', savedSessions);
     displaySavedSessions();
+    if (removedId) syncRemove('sessions', removedId);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -2048,6 +2191,7 @@ displaySavedSessions();
 updatePlotList();
 updateNotesList();
 updateStorageIndicator();
+syncFetchAll(false);
 </script>
 </body>
 </html>
