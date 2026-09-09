@@ -2,9 +2,9 @@
 
 Application statique (une seule page HTML, aucun serveur, aucune dépendance) pour préparer les entraînements du club :
 
-- **Exercices** : créer des fiches d'exercice (but, objectifs, consignes, durée), les classer par catégorie (Échauffement, Technique, Renforcement, Tactique, Jeu), les filtrer, les lier à un schéma tactique, les exporter/importer en JSON. C'est une vraie bibliothèque réutilisable d'une séance à l'autre, pas une liste jetable.
+- **Exercices** : créer, modifier, dupliquer et supprimer des fiches d'exercice (but, objectifs, consignes, durée), les classer par catégorie (Échauffement, Technique, Renforcement, Tactique, Jeu), les retrouver par recherche texte ou par filtre de catégorie, les lier à un schéma tactique, les exporter/importer en JSON. C'est une vraie bibliothèque réutilisable d'une séance à l'autre, pas une liste jetable.
 - **Séances** : construire la séance du jour en ajoutant des exercices choisis dans la bibliothèque, dans l'ordre voulu, avec le total de durée comparé à une durée cible en temps réel — pas un simple instantané de toute la bibliothèque.
-- **Schémas tactiques** : dessiner sur un terrain (dodgeball par défaut, ou volleyball/basketball/football/handball/badminton/rugby pour varier les entraînements) avec joueurs, plots, flèches, zones, textes et notes.
+- **Schémas tactiques** : dessiner sur le terrain de dodgeball officiel avec joueurs, plots, flèches, zones, textes et notes.
 - **Export Word** : chaque séance sauvegardée peut être exportée en `.doc` (HTML) avec sommaire cliquable, prêt à imprimer ou partager.
 
 ## Utilisation
@@ -64,13 +64,16 @@ Les exercices, schémas et séances sont partagés entre tous les coachs via un 
 - **Bibliothèque d'exercices par catégorie** : chaque exercice a désormais une catégorie obligatoire (🔥 Échauffement, 🎯 Technique, 💪 Renforcement, 🧠 Tactique, 🎮 Jeu). Des filtres au-dessus de la grille (avec compteur par catégorie) permettent de retrouver rapidement les exercices d'un type donné plutôt que de faire défiler une liste plate. Les exercices importés d'avant cet ajout tombent automatiquement dans « Non classé ».
 - **Panier de séance (correction du principal manque fonctionnel)** : jusque-là, « Sauvegarder la séance » snapshottait *toute* la bibliothèque d'exercices sans distinction — avec 40 exercices en fin de saison, chaque séance sauvegardée aurait contenu les 40. Un panier « 🧺 Séance en cours » permet maintenant de choisir précisément les exercices du jour (bouton « ➕ Ajouter à la séance » sur chaque carte), de les réordonner (▲▼), avec un total de durée en direct comparé à une durée cible réglable (vert si proche, orange/rouge si trop loin). Seuls les schémas réellement liés aux exercices choisis sont embarqués dans la séance sauvegardée. Le panier persiste si on recharge la page en pleine préparation, et se vide automatiquement après sauvegarde.
 - **Barre d'actions allégée** : sur mobile, les 6 boutons pleine largeur de l'en-tête (import/export/synchro) forçaient à défiler avant de voir le premier exercice. Les actions secondaires sont maintenant regroupées derrière un menu « ⋯ Plus d'actions », ne laissant en avant que « Créer un exercice ».
+- **Modifier un exercice existant** : chaque carte a maintenant un bouton « ✏️ Modifier » qui rouvre le formulaire pré-rempli et met à jour l'exercice en place (même identifiant, donc les séances qui le référencent restent cohérentes), au lieu d'obliger à supprimer et tout retaper pour la moindre correction.
+- **Dupliquer un exercice** : bouton « ⧉ Dupliquer » sur chaque carte pour créer une variante d'un exercice existant (nom suffixé « (copie) ») sans repartir de zéro.
+- **Recherche texte sur les exercices** : un champ de recherche au-dessus des filtres de catégorie retrouve un exercice par son nom, cumulable avec le filtre de catégorie actif — utile dès que la bibliothèque dépasse la vingtaine d'exercices.
+- **Sélecteur de terrain multi-sports retiré** de l'onglet Schémas (volleyball/basketball/football/handball/badminton/rugby) — hérité du code initial, sans utilité réelle pour un club de dodgeball. Le terrain dessiné est désormais toujours le terrain de dodgeball officiel, sans option superflue.
 
 ## Limites connues / axes d'amélioration
 
 - **Pas de fusion fine en cas de modifications concurrentes** (voir section Synchronisation ci-dessus) — dernier "Actualiser" gagne.
 - **`localStorage` reste plafonné (~5-10 Mo)** malgré la compression des miniatures — sert maintenant de cache, la limite est donc moins critique qu'avant la synchro, mais reste un point de vigilance si le club grossit beaucoup.
 - **Clé de synchro en clair dans le workflow n8n** (voir section Synchronisation ci-dessus) — acceptable pour ce contexte, mais pas une vraie authentification chiffrée.
-- **Pas de modification d'un exercice existant** : seules la création et la suppression sont possibles. Une faute de frappe ou un ajustement de durée oblige à tout retaper.
-- **Pas de recherche texte sur les exercices** : seul le filtre par catégorie existe ; au-delà de 20-30 exercices, retrouver un exercice précis par son nom demandera de faire défiler.
-- **Sélecteur de terrain multi-sports** (volleyball/basketball/football/handball/badminton/rugby) toujours présent dans l'onglet Schémas — hérité du code initial, sans utilité réelle identifiée pour un club de dodgeball ; candidat à la suppression pour alléger l'interface.
+- **Pas de modèle de séance réutilisable** (ex. "Séance standard : 10 min échauffement + 20 min technique + 20 min jeu") — chaque séance se reconstruit dans le panier à partir de zéro.
+- **Pas de minuteur intégré** pour chronométrer un exercice pendant la séance elle-même.
 - **Logo à intégrer manuellement** (voir section Logo ci-dessus).

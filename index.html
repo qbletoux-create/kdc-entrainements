@@ -227,6 +227,14 @@
         .session-cart-total { font-family: 'Montserrat'; font-weight: 800; font-size: 1.1em; }
         .session-cart-btn { padding: 10px 18px; font-size: .9em; }
 
+        .card-secondary-actions { display: flex; gap: 8px; margin: 10px 0; }
+        .card-secondary-actions button {
+            flex: 1; padding: 6px; font-size: .78em; font-weight: 700;
+            border: none; border-radius: 6px; cursor: pointer; transition: background .2s;
+            background: rgba(255,255,255,.15); color: #fff;
+        }
+        .card-secondary-actions button:hover { background: rgba(255,255,255,.28); }
+
         .exercise-card .add-to-session-btn {
             margin-top: 12px; width: 100%; padding: 8px; font-size: .85em; font-weight: 700;
             border: none; border-radius: 8px; cursor: pointer; transition: background .2s;
@@ -234,6 +242,18 @@
         }
         .exercise-card .add-to-session-btn:hover { background: rgba(255,255,255,.32); }
         .exercise-card .add-to-session-btn.in-session { background: var(--kdc-ambre); color: var(--kdc-abysse-deep); }
+
+        .exercise-search {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--kdc-ecume);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            margin-bottom: 12px;
+            transition: border-color .3s;
+        }
+        .exercise-search:focus { outline: none; border-color: var(--kdc-marine); }
 
         .category-filters {
             display: flex;
@@ -632,19 +652,6 @@
         .delete-schema-btn { background: var(--kdc-danger); color: #fff; }
         .delete-schema-btn:hover { background: #b8392f; }
 
-        /* ── Terrain select ── */
-        #terrainSelect {
-            width: 100%;
-            padding: 8px;
-            border: 2px solid var(--kdc-ecume);
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: .9em;
-            cursor: pointer;
-            transition: border-color .3s;
-        }
-        #terrainSelect:focus { outline: none; border-color: var(--kdc-marine); }
-
         /* ── Notification toast ── */
         .toast {
             position: fixed;
@@ -783,6 +790,7 @@
                 </div>
             </div>
 
+            <input type="search" id="exerciseSearch" class="exercise-search" placeholder="🔍 Rechercher un exercice par nom..." oninput="onExerciseSearchInput()" aria-label="Rechercher un exercice par nom">
             <div id="categoryFilters" class="category-filters" role="tablist" aria-label="Filtrer les exercices par catégorie"></div>
             <div id="exerciseGrid" class="exercise-grid"></div>
 
@@ -818,19 +826,6 @@
                         <div class="color-grid" id="colorGrid">
                             <!-- généré en JS -->
                         </div>
-                    </div>
-
-                    <div class="tool-section">
-                        <h4>🏟️ Terrain</h4>
-                        <select id="terrainSelect" onchange="currentSport=this.value; redrawCanvas();">
-                            <option value="">-- Choisir un sport --</option>
-                            <option value="volleyball">🏐 Volleyball</option>
-                            <option value="basketball">🏀 Basketball</option>
-                            <option value="football">⚽ Football</option>
-                            <option value="handball">🤾 Handball</option>
-                            <option value="badminton">🏸 Badminton</option>
-                            <option value="rugby">🏉 Rugby</option>
-                        </select>
                     </div>
 
                     <div class="tool-section">
@@ -886,7 +881,7 @@
 <div id="exerciseModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Créer un nouvel exercice</h2>
+            <h2 id="exerciseModalTitle">Créer un nouvel exercice</h2>
             <button class="close-btn" onclick="closeExerciseModal()" aria-label="Fermer">&times;</button>
         </div>
         <form id="exerciseForm" onsubmit="createExercise(event)">
@@ -935,7 +930,7 @@
                     <div id="schemaPreviewName" style="margin-top:6px;font-size:.85em;color:#666;"></div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-green submit-btn">Créer l'exercice</button>
+            <button type="submit" id="exerciseModalSubmit" class="btn btn-green submit-btn">Créer l'exercice</button>
         </form>
     </div>
 </div>
@@ -1136,6 +1131,12 @@ function switchTab(name, el) {
 ═══════════════════════════════════════════════════ */
 let customExercises = ls.get('customExercises', []);
 let currentExerciseFilter = 'all';
+let currentExerciseSearch = '';
+
+function onExerciseSearchInput() {
+    currentExerciseSearch = document.getElementById('exerciseSearch').value.trim().toLowerCase();
+    displayExercises();
+}
 
 // Catégories fixes (échauffement, technique, renforcement, tactique, jeu) —
 // un exercice importé d'avant l'ajout de ce champ (ou sans catégorie choisie)
@@ -1178,16 +1179,19 @@ function displayExercises() {
     buildCategoryFilters();
     const grid = document.getElementById('exerciseGrid');
     grid.innerHTML = '';
-    const filtered = currentExerciseFilter === 'all'
+    let filtered = currentExerciseFilter === 'all'
         ? customExercises
         : customExercises.filter(ex => (CATEGORIES[ex.category] ? ex.category : 'non-classe') === currentExerciseFilter);
+    if (currentExerciseSearch) {
+        filtered = filtered.filter(ex => (ex.name || '').toLowerCase().includes(currentExerciseSearch));
+    }
 
     if (!customExercises.length) {
         grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px;">Aucun exercice — cliquez sur ➕ pour commencer.</div>';
         return;
     }
     if (!filtered.length) {
-        grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px;">Aucun exercice dans cette catégorie.</div>';
+        grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px;">Aucun exercice ne correspond à cette recherche.</div>';
         return;
     }
     filtered.forEach(ex => {
@@ -1197,6 +1201,10 @@ function displayExercises() {
         card.innerHTML = `
             <button class="delete-exercise-btn" onclick="deleteExercise('${ex.id}')" aria-label="Supprimer l'exercice ${escapeHtml(ex.name)}">✕</button>
             <h3>${escapeHtml(ex.icon || '📋')} ${escapeHtml(ex.name)} <span class="category-badge" style="background:${cat.color};color:${cat.text};">${cat.icon} ${cat.label}</span></h3>
+            <div class="card-secondary-actions">
+                <button onclick="editExercise('${ex.id}')">✏️ Modifier</button>
+                <button onclick="duplicateExercise('${ex.id}')">⧉ Dupliquer</button>
+            </div>
             ${ex.but       ? `<p><strong>🎯 But :</strong> ${escapeHtml(ex.but)}</p>` : ''}
             ${ex.objectifs ? `<p><strong>📌 Objectifs :</strong> ${escapeHtml(ex.objectifs)}</p>` : ''}
             <p><strong>📋 Consignes :</strong> ${escapeHtml(ex.description)}</p>
@@ -1317,22 +1325,71 @@ function renderSessionCart() {
     totalEl.textContent = `⏱️ Total : ${total} min${hint}`;
 }
 
-function openExerciseModal() {
+let editingExerciseId = null;
+
+function populateSchemaLinkOptions(selectedName) {
     const select = document.getElementById('exerciseSchemaLink');
     select.innerHTML = '<option value="">-- Aucun schéma --</option>';
     ls.get('dodgeballSchemasComplete', []).forEach((s, i) => {
         const opt = document.createElement('option');
         opt.value = i;
         opt.textContent = `🎨 ${s.name}  (${s.date})`;
+        if (selectedName && s.name === selectedName) opt.selected = true;
         select.appendChild(opt);
     });
+}
+
+function openExerciseModal() {
+    editingExerciseId = null;
+    document.getElementById('exerciseForm').reset();
+    document.getElementById('exerciseModalTitle').textContent = 'Créer un nouvel exercice';
+    document.getElementById('exerciseModalSubmit').textContent = "Créer l'exercice";
+    populateSchemaLinkOptions(null);
     document.getElementById('schemaPreviewContainer').style.display = 'none';
     document.getElementById('exerciseModal').style.display = 'block';
+}
+
+function editExercise(id) {
+    const ex = customExercises.find(e => e.id === id);
+    if (!ex) return;
+    editingExerciseId = id;
+    document.getElementById('exerciseModalTitle').textContent = "Modifier l'exercice";
+    document.getElementById('exerciseModalSubmit').textContent = 'Enregistrer les modifications';
+    document.getElementById('exerciseName').value = ex.name || '';
+    document.getElementById('exerciseIcon').value = ex.icon || '';
+    document.getElementById('exerciseCategory').value = ex.category || '';
+    document.getElementById('exerciseBut').value = ex.but || '';
+    document.getElementById('exerciseObjectifs').value = ex.objectifs || '';
+    document.getElementById('exerciseDescription').value = ex.description || '';
+    document.getElementById('exerciseDuration').value = ex.duration || '';
+    populateSchemaLinkOptions(ex.linkedSchema ? ex.linkedSchema.name : null);
+    document.getElementById('schemaPreviewContainer').style.display = ex.linkedSchema && ex.linkedSchema.thumbnail ? 'block' : 'none';
+    if (ex.linkedSchema) {
+        document.getElementById('schemaPreviewImg').src = ex.linkedSchema.thumbnail || '';
+        document.getElementById('schemaPreviewName').textContent = ex.linkedSchema.name;
+    }
+    document.getElementById('exerciseModal').style.display = 'block';
+}
+
+function duplicateExercise(id) {
+    const ex = customExercises.find(e => e.id === id);
+    if (!ex) return;
+    const copy = JSON.parse(JSON.stringify(ex));
+    copy.id = 'custom-' + Date.now();
+    copy.name = ex.name + ' (copie)';
+    customExercises.push(copy);
+    if (!ls.set('customExercises', customExercises)) {
+        showToast('⚠️ Stockage local plein — libère de la place (supprime un vieux schéma) puis réessaie', 'var(--kdc-danger)');
+    }
+    displayExercises();
+    showToast(`✅ « ${ex.name} » dupliqué !`);
+    syncPush('exercises', copy);
 }
 
 function closeExerciseModal() {
     document.getElementById('exerciseModal').style.display = 'none';
     document.getElementById('exerciseForm').reset();
+    editingExerciseId = null;
 }
 
 function createExercise(e) {
@@ -1341,8 +1398,7 @@ function createExercise(e) {
     const idx       = document.getElementById('exerciseSchemaLink').value;
     const linked    = idx !== '' && schemas[idx] ? { name: schemas[idx].name, thumbnail: schemas[idx].thumbnail, date: schemas[idx].date } : null;
 
-    customExercises.push({
-        id:           'custom-' + Date.now(),
+    const fields = {
         name:         document.getElementById('exerciseName').value,
         icon:         document.getElementById('exerciseIcon').value || '📋',
         category:     document.getElementById('exerciseCategory').value || 'non-classe',
@@ -1351,14 +1407,27 @@ function createExercise(e) {
         description:  document.getElementById('exerciseDescription').value,
         duration:     parseInt(document.getElementById('exerciseDuration').value) || 0,
         linkedSchema: linked
-    });
+    };
+
+    let savedExercise;
+    if (editingExerciseId) {
+        const i = customExercises.findIndex(ex => ex.id === editingExerciseId);
+        if (i === -1) { closeExerciseModal(); return; }
+        customExercises[i] = { id: editingExerciseId, ...fields };
+        savedExercise = customExercises[i];
+    } else {
+        savedExercise = { id: 'custom-' + Date.now(), ...fields };
+        customExercises.push(savedExercise);
+    }
+
     if (!ls.set('customExercises', customExercises)) {
         showToast('⚠️ Stockage local plein — libère de la place (supprime un vieux schéma) puis réessaie', 'var(--kdc-danger)');
     }
+    const wasEditing = !!editingExerciseId;
     displayExercises();
     closeExerciseModal();
-    showToast('✅ Exercice créé avec succès !');
-    syncPush('exercises', customExercises[customExercises.length - 1]);
+    showToast(wasEditing ? '✅ Exercice modifié avec succès !' : '✅ Exercice créé avec succès !');
+    syncPush('exercises', savedExercise);
 }
 
 function deleteExercise(id) {
@@ -1521,7 +1590,6 @@ let plots        = [];
 let notes        = [];
 let savedSchemas = ls.get('dodgeballSchemasComplete', []);
 let selectedPlot = null;
-let currentSport = '';
 
 /* ═══════════════════════════════════════════════════
    HISTORIQUE (Annuler / Rétablir)
@@ -1617,30 +1685,12 @@ function selectTool(tool, btn) {
     btn.classList.add('active');
 }
 
-/* ═══════════════════════════════════════════════════
-   TERRAIN DRAWING
-   (Les couleurs de terrain reproduisent le marquage réel de chaque
-   sport — indépendantes de la charte graphique du club.)
-═══════════════════════════════════════════════════ */
-const TERRAINS = {
-    volleyball: { label: '🏐 Volleyball', color: '#f5f5dc', lineColor: '#c8a200' },
-    basketball: { label: '🏀 Basketball', color: '#f4a460', lineColor: '#8b4513' },
-    football:   { label: '⚽ Football',   color: '#3a8c3a', lineColor: '#ffffff' },
-    handball:   { label: '🤾 Handball',   color: '#d4edda', lineColor: '#1a6b2e' },
-    badminton:  { label: '🏸 Badminton',  color: '#e8f4fd', lineColor: '#1565c0' },
-    rugby:      { label: '🏉 Rugby',       color: '#3a8c3a', lineColor: '#ffffff' }
-};
-
 function drawLine(x1, y1, x2, y2) {
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
 }
 
 function drawCourt() {
-    if (currentSport && TERRAINS[currentSport]) {
-        drawSportTerrain(currentSport);
-    } else {
-        drawDodgeballCourt();
-    }
+    drawDodgeballCourt();
 }
 
 function drawDodgeballCourt() {
@@ -1716,166 +1766,6 @@ function drawDodgeballCourt() {
 
     ctx.fillStyle = '#01416f'; ctx.font = 'bold 14px Montserrat, Segoe UI';
     ctx.fillText('🐙 Terrain Dodgeball officiel — 18m × 9m (WDBF / FDF)', W / 2, H - 10);
-}
-
-function drawSportTerrain(sport) {
-    const t = TERRAINS[sport];
-    const w = canvas.width, h = canvas.height;
-    const mx = 60, my = 40;
-    const TL = mx, TR = w - mx, TT = my, TB = h - my;
-    const TW = TR - TL, TH = TB - TT;
-    const cy = TT + TH / 2;
-
-    ctx.fillStyle = t.color;
-    ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = t.lineColor;
-    ctx.lineWidth = 3;
-    ctx.strokeRect(TL, TT, TW, TH);
-
-    if (sport === 'volleyball') {
-        ctx.lineWidth = 5;
-        drawLine(w / 2, TT, w / 2, TB);
-        ctx.lineWidth = 3;
-        const atk = TW * 3 / 18;
-        drawLine(w / 2 - atk, TT, w / 2 - atk, TB);
-        drawLine(w / 2 + atk, TT, w / 2 + atk, TB);
-        ctx.setLineDash([8, 5]);
-        [[mx, TT], [mx, TB], [TR, TT], [TR, TB]].forEach(([x, y], i) => {
-            const dir = x === mx ? -1 : 1;
-            drawLine(x, y, x + dir * 14, y);
-        });
-        ctx.setLineDash([]);
-
-    } else if (sport === 'basketball') {
-        const sc = TW / 28;
-        // Bandes parquet
-        ctx.save();
-        ctx.strokeStyle = 'rgba(180,130,60,.3)'; ctx.lineWidth = 1;
-        for (let ys = TT + 12; ys < TB; ys += 12) drawLine(TL, ys, TR, ys);
-        ctx.restore();
-
-        ctx.fillStyle = 'rgba(180,80,60,.25)';
-        ctx.fillRect(TL, cy - 2.45*sc, 5.8*sc, 4.9*sc);
-        ctx.fillRect(TR - 5.8*sc, cy - 2.45*sc, 5.8*sc, 4.9*sc);
-
-        ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 2.5;
-        drawLine(TL + TW/2, TT, TL + TW/2, TB);
-
-        // Cercle central
-        ctx.beginPath(); ctx.arc(TL + TW/2, cy, 1.8*sc, 0, Math.PI*2); ctx.stroke();
-        ctx.fillStyle = 'rgba(180,80,60,.18)';
-        ctx.beginPath(); ctx.arc(TL + TW/2, cy, 1.8*sc, 0, Math.PI*2); ctx.fill();
-
-        [[TL, 1], [TR, -1]].forEach(([fondX, dir]) => {
-            const hoopX = fondX + dir * 1.575 * sc;
-            const ftX   = fondX + dir * 5.8 * sc;
-            const pw    = 2.45 * sc;
-
-            ctx.beginPath();
-            ctx.rect(dir === 1 ? fondX : fondX - 5.8*sc, cy - pw, 5.8*sc, pw*2);
-            ctx.stroke();
-
-            ctx.beginPath(); ctx.arc(ftX, cy, 1.8*sc, -Math.PI/2, Math.PI/2, dir === -1); ctx.stroke();
-            ctx.setLineDash([7,5]);
-            ctx.beginPath(); ctx.arc(ftX, cy, 1.8*sc, Math.PI/2, -Math.PI/2, dir === -1); ctx.stroke();
-            ctx.setLineDash([]);
-
-            ctx.beginPath(); ctx.arc(hoopX, cy, 1.25*sc, -Math.PI/2, Math.PI/2, dir === -1); ctx.stroke();
-
-            ctx.lineWidth = 5;
-            drawLine(fondX, cy - 0.9*sc, fondX, cy + 0.9*sc);
-            ctx.lineWidth = 2.5;
-
-            ctx.fillStyle = '#8b4513';
-            ctx.beginPath(); ctx.arc(hoopX, cy, 0.225*sc, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(hoopX, cy, 0.225*sc, 0, Math.PI*2); ctx.stroke();
-            ctx.fillStyle = '#d4a85a';
-
-            const r3 = 6.75 * sc;
-            const rawDy    = TH / 2 - 0.9 * sc;
-            const clampDy  = Math.min(rawDy, r3 * 0.999);
-            const angC     = Math.asin(clampDy / r3);
-            const yTop = cy - clampDy, yBot = cy + clampDy;
-            const aTop = dir === 1 ? -angC : Math.PI + angC;
-            const aBot = dir === 1 ?  angC : Math.PI - angC;
-            drawLine(fondX, yTop, hoopX + Math.cos(aTop)*r3, yTop);
-            drawLine(fondX, yBot, hoopX + Math.cos(aBot)*r3, yBot);
-            ctx.beginPath(); ctx.arc(hoopX, cy, r3, aTop, aBot, dir === -1); ctx.stroke();
-
-            [0.85, 1.7, 2.95].forEach(d => {
-                const mx2 = fondX + dir * d * sc;
-                drawLine(mx2, cy - pw - 8, mx2, cy - pw);
-                drawLine(mx2, cy + pw, mx2, cy + pw + 8);
-            });
-        });
-
-    } else if (sport === 'football') {
-        ctx.beginPath(); ctx.arc(w/2, h/2, 70, 0, Math.PI*2); ctx.stroke();
-        drawLine(w/2, my, w/2, h-my);
-        ctx.strokeRect(mx, h/2-90, 120, 180);
-        ctx.strokeRect(mx, h/2-45, 55, 90);
-        ctx.strokeRect(w-mx-120, h/2-90, 120, 180);
-        ctx.strokeRect(w-mx-55, h/2-45, 55, 90);
-        ctx.lineWidth = 5;
-        ctx.strokeRect(mx-18, h/2-28, 18, 56);
-        ctx.strokeRect(w-mx, h/2-28, 18, 56);
-        ctx.lineWidth = 3;
-
-    } else if (sport === 'handball') {
-        drawLine(w/2, my, w/2, h-my);
-        ctx.beginPath(); ctx.arc(w/2, h/2, 50, 0, Math.PI*2); ctx.stroke();
-        ctx.beginPath(); ctx.arc(mx+10, h/2, 150, -Math.PI/2, Math.PI/2); ctx.stroke();
-        ctx.beginPath(); ctx.arc(w-mx-10, h/2, 150, Math.PI/2, -Math.PI/2); ctx.stroke();
-        ctx.lineWidth = 5;
-        ctx.strokeRect(mx-20, h/2-32, 20, 64);
-        ctx.strokeRect(w-mx, h/2-32, 20, 64);
-        ctx.lineWidth = 3;
-
-    } else if (sport === 'badminton') {
-        const couloir = TH * 0.46 / 6.1;
-        drawLine(TL, TT + couloir, TR, TT + couloir);
-        drawLine(TL, TB - couloir, TR, TB - couloir);
-        ctx.lineWidth = 5;
-        drawLine(w/2, TT, w/2, TB);
-        ctx.lineWidth = 3;
-        const servCourt = TW/2 * 1.98 / 6.7;
-        drawLine(w/2 - servCourt, TT + couloir, w/2 - servCourt, TB - couloir);
-        drawLine(w/2 + servCourt, TT + couloir, w/2 + servCourt, TB - couloir);
-        drawLine(TL, cy, w/2 - servCourt, cy);
-        drawLine(w/2 + servCourt, cy, TR, cy);
-        const servLong = TW/2 * 0.76 / 6.7;
-        drawLine(TL + servLong, TT + couloir, TL + servLong, TB - couloir);
-        drawLine(TR - servLong, TT + couloir, TR - servLong, TB - couloir);
-
-    } else if (sport === 'rugby') {
-        const scX = TW / 120, scY = TH / 70;
-        // Bandes gazon
-        for (let i = 0; i < 12; i++) {
-            if (i % 2 === 0) { ctx.fillStyle = 'rgba(0,0,0,.06)'; ctx.fillRect(TL + i*(TW/12), TT, TW/12, TH); }
-        }
-        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5;
-        const enBut = 10 * scX;
-        drawLine(TL + enBut, TT, TL + enBut, TB);
-        drawLine(TR - enBut, TT, TR - enBut, TB);
-        ctx.lineWidth = 3; drawLine(TL + TW/2, TT, TL + TW/2, TB);
-        ctx.lineWidth = 2;
-        const m10 = 10 * scX, m22 = 22 * scX;
-        [TL+TW/2-m10, TL+TW/2+m10, TL+enBut+m22, TR-enBut-m22].forEach(x => drawLine(x, TT, x, TB));
-
-        const postW = 5.6 * scY, postH = 15 * scY;
-        [[TL, 1], [TR, -1]].forEach(([px, dir]) => {
-            ctx.lineWidth = 3; ctx.strokeStyle = '#ffff00';
-            drawLine(px, cy - postW, px, cy + postW);
-            drawLine(px, cy - postW, px + dir*5, cy - postW - postH);
-            drawLine(px, cy + postW, px + dir*5, cy + postW - postH);
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5;
-        });
-        ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff';
-        ctx.strokeRect(TL, TT, TW, TH);
-    }
-
-    ctx.font = 'bold 15px Montserrat, Segoe UI'; ctx.textAlign = 'center'; ctx.fillStyle = t.lineColor;
-    ctx.fillText(t.label, w/2, h - 12);
 }
 
 /* ═══════════════════════════════════════════════════
