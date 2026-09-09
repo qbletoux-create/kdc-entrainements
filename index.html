@@ -8,6 +8,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* ══════════════════════════════════════════════════════════
+           CHARTE GRAPHIQUE KDC17 (2026) — palette officielle reprise
+           du repo kdc-web (src/app/globals.css) :
+           Abysse (fond/texte foncé), Marine (bleu de marque), Écume
+           (surfaces claires), Ambre/Soleil (accents rares), Nacre (blanc).
+           Titres en Montserrat (majuscules), texte en Karla.
+        ═══════════════════════════════════════════════════════════ */
         :root {
             --kdc-abysse: #243455;
             --kdc-abysse-deep: #1a2640;
@@ -25,7 +32,10 @@
             --kdc-success: #2e8b57;
             --kdc-danger: #d0453a;
         }
+
+        /* ── Reset & base ── */
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: 'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: var(--kdc-cream);
@@ -33,11 +43,14 @@
             min-height: 100vh;
             padding: 20px;
         }
+
         h1, h2, h3, h4, .font-display {
             font-family: 'Montserrat', Arial, sans-serif;
             text-transform: uppercase;
             letter-spacing: 0.01em;
         }
+
+        /* ── Layout ── */
         .container {
             max-width: 1600px;
             margin: 0 auto;
@@ -46,6 +59,7 @@
             box-shadow: 0 20px 60px rgba(36,52,85,.25);
             overflow: hidden;
         }
+
         .header {
             background: linear-gradient(135deg, var(--kdc-abysse), var(--kdc-abysse-deep));
             color: var(--kdc-nacre);
@@ -56,38 +70,83 @@
             align-items: center;
             gap: 10px;
         }
-        .header-brand { display: flex; align-items: center; gap: 14px; }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
         .header-badge {
-            width: 52px; height: 52px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             background: var(--kdc-ambre);
             color: var(--kdc-abysse-deep);
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-family: 'Montserrat', Arial, sans-serif;
-            font-weight: 800; font-size: 1.1em;
+            font-weight: 800;
+            font-size: 1.1em;
             flex-shrink: 0;
         }
         .header h1 { font-size: 1.9em; font-weight: 800; margin: 0; }
         .header p { font-size: .95em; color: var(--kdc-ecume); }
-        .tabs { display: flex; background: var(--kdc-ecume-light); border-bottom: 2px solid var(--kdc-ecume); }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            background: var(--kdc-ecume-light);
+            border-bottom: 2px solid var(--kdc-ecume);
+        }
         .tab {
-            flex: 1; padding: 20px; text-align: center; cursor: pointer;
-            font-weight: 700; font-family: 'Montserrat', Arial, sans-serif;
-            text-transform: uppercase; font-size: .85em; letter-spacing: .03em;
-            color: var(--kdc-abysse); transition: background .3s;
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Montserrat', Arial, sans-serif;
+            text-transform: uppercase;
+            font-size: .85em;
+            letter-spacing: .03em;
+            color: var(--kdc-abysse);
+            transition: background .3s;
+            border: none;
+            border-bottom: 3px solid transparent;
+            background: none;
         }
         .tab:hover { background: var(--kdc-ecume); }
         .tab.active { background: var(--kdc-nacre); color: var(--kdc-marine); border-bottom: 3px solid var(--kdc-ambre); }
+        .tab:focus-visible,
+        .btn:focus-visible,
+        .close-btn:focus-visible,
+        .delete-exercise-btn:focus-visible,
+        .delete-note-btn:focus-visible,
+        .delete-plot-btn:focus-visible,
+        .delete-schema-btn:focus-visible,
+        .load-btn:focus-visible {
+            outline: 3px solid var(--kdc-marine);
+            outline-offset: 2px;
+        }
+
         .content { padding: 30px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* ── Buttons — base classes ── */
         .btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            border: none; border-radius: 8px; cursor: pointer;
-            font-family: inherit; font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
             transition: background .3s, transform .2s;
         }
         .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+        .btn:disabled:hover { transform: none; }
         .btn-green  { background: var(--kdc-marine); color: var(--kdc-nacre); }
         .btn-green:hover  { background: var(--kdc-marine-dark); }
         .btn-blue   { background: var(--kdc-abysse); color: var(--kdc-nacre); }
@@ -96,128 +155,442 @@
         .btn-red:hover    { background: #b8392f; }
         .btn-teal   { background: var(--kdc-ambre); color: var(--kdc-abysse-deep); }
         .btn-teal:hover   { background: var(--kdc-ambre-dark); }
-        .exercises-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; }
+
+        /* ── Exercise header & grid ── */
+        .exercises-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
         .exercises-header > div { display: flex; gap: 10px; flex-wrap: wrap; }
         .exercises-header h2 { color: var(--kdc-abysse); }
-        .add-exercise-btn { padding: 12px 25px; font-size: 1em; }
-        .exercise-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+
+        .add-exercise-btn {
+            padding: 12px 25px;
+            font-size: 1em;
+        }
+
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
         .exercise-card {
             background: linear-gradient(135deg, var(--kdc-abysse), var(--kdc-marine-dark));
-            color: var(--kdc-nacre); padding: 25px; border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(36,52,85,.25); transition: transform .3s; position: relative;
+            color: var(--kdc-nacre);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(36,52,85,.25);
+            transition: transform .3s;
+            position: relative;
         }
         .exercise-card:hover { transform: translateY(-5px); }
         .exercise-card h3 { margin-bottom: 15px; font-size: 1.15em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .exercise-card p  { line-height: 1.6; margin-bottom: 10px; font-size: .95em; }
-        .duration { background: rgba(255,255,255,.18); padding: 5px 10px; border-radius: 20px; display: inline-block; margin-top: 10px; font-size: .9em; }
-        .custom-badge { background: var(--kdc-ambre); color: var(--kdc-abysse-deep); padding: 4px 10px; border-radius: 15px; font-size: .65em; font-weight: 800; text-transform: uppercase; }
+
+        .duration {
+            background: rgba(255,255,255,.18);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            font-size: .9em;
+        }
+        .custom-badge {
+            background: var(--kdc-ambre);
+            color: var(--kdc-abysse-deep);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: .65em;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
         .delete-exercise-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: rgba(208,69,58,.9); color: #fff; border: none;
-            width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2em;
-            display: flex; align-items: center; justify-content: center; transition: background .3s, transform .2s;
+            position: absolute;
+            top: 15px; right: 15px;
+            background: rgba(208,69,58,.9);
+            color: #fff;
+            border: none;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .3s, transform .2s;
         }
         .delete-exercise-btn:hover { background: #b8392f; transform: scale(1.1); }
+
+        /* ── Modal ── */
         .modal {
-            display: none; position: fixed; inset: 0; z-index: 1000;
-            background: rgba(26,38,64,.7); animation: fadeIn .3s;
-            overflow-y: auto; padding: 40px 0;
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(26,38,64,.7);
+            animation: fadeIn .3s;
+            overflow-y: auto;
+            padding: 40px 0;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         .modal-content {
-            background: var(--kdc-nacre); margin: 0 auto; padding: 30px;
-            border-radius: 15px; width: 90%; max-width: 600px; animation: slideDown .3s;
+            background: var(--kdc-nacre);
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            animation: slideDown .3s;
         }
-        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid var(--kdc-ecume-light); }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to   { transform: translateY(0);     opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--kdc-ecume-light);
+        }
         .modal-header h2 { color: var(--kdc-abysse); font-size: 1.3em; }
-        .close-btn { background: none; border: none; font-size: 2em; cursor: pointer; color: #999; transition: color .3s; line-height: 1; }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            transition: color .3s;
+            line-height: 1;
+        }
         .close-btn:hover { color: var(--kdc-abysse); }
+
+        /* ── Form ── */
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--kdc-abysse); }
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%; padding: 12px; border: 2px solid var(--kdc-ecume); border-radius: 8px;
-            font-family: inherit; font-size: 1em; transition: border-color .3s;
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--kdc-ecume);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            transition: border-color .3s;
         }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--kdc-marine); }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus { outline: none; border-color: var(--kdc-marine); }
         .form-group textarea { resize: vertical; min-height: 100px; }
+
         .submit-btn { width: 100%; padding: 15px; font-size: 1.1em; }
-        .schema-workspace { display: grid; grid-template-columns: 250px 1fr 350px; gap: 20px; margin-top: 20px; }
+
+        /* ── Schema workspace ── */
+        .schema-workspace {
+            display: grid;
+            grid-template-columns: 250px 1fr 350px;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
         .tools-sidebar { display: flex; flex-direction: column; gap: 15px; }
-        .tool-section { background: var(--kdc-ecume-light); padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(36,52,85,.08); }
+
+        .tool-section {
+            background: var(--kdc-ecume-light);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(36,52,85,.08);
+        }
         .tool-section h4 { margin-bottom: 12px; color: var(--kdc-abysse); font-size: .85em; }
+
         .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .tool-btn { padding: 10px; font-size: .85em; text-align: center; text-transform: none; font-family: inherit; font-weight: 600; }
+
+        .tool-btn {
+            padding: 10px;
+            font-size: .85em;
+            text-align: center;
+            text-transform: none;
+            font-family: inherit;
+            font-weight: 600;
+        }
         .tool-btn.active { background: var(--kdc-ambre) !important; color: var(--kdc-abysse-deep) !important; }
+
         .action-btn { width: 100%; padding: 12px; margin-top: 8px; font-size: .9em; text-transform: none; font-family: inherit; }
+
+        /* ── Canvas ── */
         .canvas-area { display: flex; flex-direction: column; }
+
         #canvas-container {
-            position: relative; background: var(--kdc-ecume-light); border-radius: 10px; overflow: hidden;
-            box-shadow: 0 5px 15px rgba(36,52,85,.12); flex: 1; width: 100%; display: flex; justify-content: center;
+            position: relative;
+            background: var(--kdc-ecume-light);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(36,52,85,.12);
+            flex: 1;
         }
         canvas { display: block; cursor: crosshair; }
-        .canvas-info { background: var(--kdc-nacre); padding: 12px; border-radius: 8px; margin-top: 15px; text-align: center; color: #666; font-size: .9em; }
+
+        .canvas-info {
+            background: var(--kdc-nacre);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            color: #666;
+            font-size: .9em;
+        }
+
+        /* ── Notes panel ── */
         .notes-panel { display: flex; flex-direction: column; gap: 15px; }
-        .panel-section { background: var(--kdc-ecume-light); padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(36,52,85,.08); }
+
+        .panel-section {
+            background: var(--kdc-ecume-light);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(36,52,85,.08);
+        }
         .panel-section h3 { margin-bottom: 15px; color: var(--kdc-abysse); font-size: 1em; }
+
+        /* ── Colors ── */
         .color-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
-        .color-option { width: 100%; aspect-ratio: 1; border-radius: 5px; cursor: pointer; border: 2px solid transparent; transition: transform .2s, border-color .2s; }
+
+        .color-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform .2s, border-color .2s;
+        }
         .color-option:hover { transform: scale(1.1); }
-        .color-option.active { border-color: var(--kdc-abysse); transform: scale(1.15); box-shadow: 0 0 10px rgba(36,52,85,.3); }
+        .color-option.active {
+            border-color: var(--kdc-abysse);
+            transform: scale(1.15);
+            box-shadow: 0 0 10px rgba(36,52,85,.3);
+        }
+
+        /* ── Note items ── */
         .notes-container { flex: 1; display: flex; flex-direction: column; }
+
         .note-input-area { display: flex; gap: 10px; margin-bottom: 15px; }
-        .note-input { flex: 1; padding: 10px; border: 2px solid var(--kdc-ecume); border-radius: 8px; font-family: inherit; transition: border-color .3s; }
+
+        .note-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--kdc-ecume);
+            border-radius: 8px;
+            font-family: inherit;
+            transition: border-color .3s;
+        }
         .note-input:focus { outline: none; border-color: var(--kdc-marine); }
+
         .add-note-btn { padding: 10px 20px; }
-        .notes-list, .plot-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+
+        .notes-list, .plot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
         .notes-list { flex: 1; max-height: 250px; }
         .plot-list  { max-height: 200px; gap: 8px; }
-        .notes-list::-webkit-scrollbar, .plot-list::-webkit-scrollbar { width: 8px; }
-        .notes-list::-webkit-scrollbar-track, .plot-list::-webkit-scrollbar-track { background: var(--kdc-ecume-light); border-radius: 10px; }
-        .notes-list::-webkit-scrollbar-thumb, .plot-list::-webkit-scrollbar-thumb { background: var(--kdc-marine-light); border-radius: 10px; }
-        .notes-list::-webkit-scrollbar-thumb:hover, .plot-list::-webkit-scrollbar-thumb:hover { background: var(--kdc-marine); }
-        .note-item { background: var(--kdc-nacre); padding: 12px; border-radius: 8px; border-left: 4px solid var(--kdc-marine); position: relative; transition: box-shadow .3s; }
+
+        /* shared scrollbar */
+        .notes-list::-webkit-scrollbar,
+        .plot-list::-webkit-scrollbar { width: 8px; }
+        .notes-list::-webkit-scrollbar-track,
+        .plot-list::-webkit-scrollbar-track { background: var(--kdc-ecume-light); border-radius: 10px; }
+        .notes-list::-webkit-scrollbar-thumb,
+        .plot-list::-webkit-scrollbar-thumb { background: var(--kdc-marine-light); border-radius: 10px; }
+        .notes-list::-webkit-scrollbar-thumb:hover,
+        .plot-list::-webkit-scrollbar-thumb:hover { background: var(--kdc-marine); }
+
+        .note-item {
+            background: var(--kdc-nacre);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--kdc-marine);
+            position: relative;
+            transition: box-shadow .3s;
+        }
         .note-item:hover { box-shadow: 0 2px 8px rgba(36,52,85,.12); }
         .note-text  { color: var(--kdc-ink); line-height: 1.5; margin-bottom: 8px; word-break: break-word; }
         .note-meta  { display: flex; justify-content: space-between; align-items: center; font-size: .8em; color: #666; }
-        .delete-note-btn { background: var(--kdc-danger); color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: .85em; transition: background .2s; }
+
+        .delete-note-btn {
+            background: var(--kdc-danger);
+            color: #fff;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .85em;
+            transition: background .2s;
+        }
         .delete-note-btn:hover { background: #b8392f; }
-        .plot-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--kdc-nacre); border-radius: 6px; cursor: pointer; transition: background .2s; }
+
+        /* ── Plot list ── */
+        .plot-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--kdc-nacre);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background .2s;
+        }
         .plot-item:hover   { background: var(--kdc-ecume); }
+        .plot-item:focus-visible { outline: 3px solid var(--kdc-marine); outline-offset: 2px; }
         .plot-item.selected { background: var(--kdc-marine); color: var(--kdc-nacre); }
+
         .plot-info { display: flex; align-items: center; gap: 10px; word-break: break-word; }
         .plot-color { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; }
-        .delete-plot-btn { background: var(--kdc-danger); color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: .8em; transition: background .2s; flex-shrink: 0; }
+
+        .delete-plot-btn {
+            background: var(--kdc-danger);
+            color: #fff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .8em;
+            transition: background .2s;
+            flex-shrink: 0;
+        }
         .delete-plot-btn:hover { background: #b8392f; }
+
+        /* ── Saved schemas / sessions ── */
         .saved-schemas, .saved-sessions { margin-top: 30px; }
         .saved-sessions h3, .saved-schemas h3 { color: var(--kdc-abysse); }
-        .schema-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 15px; }
-        .schema-item { background: var(--kdc-ecume-light); padding: 20px; border-radius: 15px; cursor: pointer; transition: background .3s, transform .3s, box-shadow .3s; box-shadow: 0 2px 8px rgba(36,52,85,.08); }
-        .schema-item:hover { background: var(--kdc-ecume); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(36,52,85,.18); }
-        .schema-thumbnail { width: 100%; height: 180px; background: var(--kdc-nacre); border-radius: 10px; margin-bottom: 15px; border: 2px solid var(--kdc-ecume); object-fit: contain; }
+
+        .schema-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .schema-item {
+            background: var(--kdc-ecume-light);
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background .3s, transform .3s, box-shadow .3s;
+            box-shadow: 0 2px 8px rgba(36,52,85,.08);
+        }
+        .schema-item:hover {
+            background: var(--kdc-ecume);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(36,52,85,.18);
+        }
+
+        .schema-thumbnail {
+            width: 100%;
+            height: 180px;
+            background: var(--kdc-nacre);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid var(--kdc-ecume);
+            object-fit: contain;
+        }
+
         .schema-info  { margin-top: 10px; }
         .schema-name  { font-weight: 700; font-size: 1.15em; margin-bottom: 8px; color: var(--kdc-abysse); word-break: break-word; }
         .schema-date  { font-size: .85em; color: #666; margin-bottom: 10px; }
-        .schema-notes-count, .schema-plots-count { color: #fff; padding: 4px 10px; border-radius: 15px; font-size: .8em; display: inline-block; margin-bottom: 10px; }
+
+        .schema-notes-count,
+        .schema-plots-count {
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: .8em;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
         .schema-notes-count { background: var(--kdc-marine); }
         .schema-plots-count { background: var(--kdc-ambre-dark); margin-left: 5px; }
+
         .schema-actions { display: flex; gap: 10px; margin-top: 15px; }
-        .schema-btn { flex: 1; padding: 10px; font-size: .9em; border-radius: 8px; font-weight: 700; }
+
+        .schema-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: .9em;
+            border-radius: 8px;
+            font-weight: 700;
+        }
         .load-btn          { background: var(--kdc-marine); color: #fff; }
         .load-btn:hover    { background: var(--kdc-marine-dark); }
         .delete-schema-btn { background: var(--kdc-danger); color: #fff; }
         .delete-schema-btn:hover { background: #b8392f; }
-        #terrainSelect { width: 100%; padding: 8px; border: 2px solid var(--kdc-ecume); border-radius: 8px; font-family: inherit; font-size: .9em; cursor: pointer; transition: border-color .3s; }
+
+        /* ── Terrain select ── */
+        #terrainSelect {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid var(--kdc-ecume);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: .9em;
+            cursor: pointer;
+            transition: border-color .3s;
+        }
         #terrainSelect:focus { outline: none; border-color: var(--kdc-marine); }
-        .toast { position: fixed; top: 20px; right: 20px; background: var(--kdc-success); color: #fff; padding: 20px 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,.3); font-weight: bold; z-index: 10000; animation: slideIn .3s ease; }
+
+        /* ── Notification toast ── */
+        .toast {
+            position: fixed;
+            top: 20px; right: 20px;
+            background: var(--kdc-success);
+            color: #fff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.3);
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn .3s ease;
+        }
         @keyframes slideIn  { from { transform: translateX(120%); } to { transform: translateX(0); } }
         @keyframes slideOut { from { transform: translateX(0); }    to { transform: translateX(120%); } }
-        canvas#schemaCanvas { width: 100%; height: auto; max-width: 900px; touch-action: none; }
+
+        /* ── Canvas : s'adapte à la largeur du conteneur en gardant ses proportions ── */
+        #canvas-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        canvas#schemaCanvas {
+            width: 100%;
+            height: auto;
+            max-width: 900px;
+            touch-action: none; /* évite le scroll de la page pendant le dessin au doigt */
+        }
+
+        /* ═══════════════════════════════════════════════════
+           RESPONSIVE — tablette (≤ 1100px) : sidebar / canvas / notes empilés
+        ═══════════════════════════════════════════════════ */
         @media (max-width: 1100px) {
             .schema-workspace { grid-template-columns: 1fr; }
             .tools-sidebar { flex-direction: row; flex-wrap: wrap; }
             .tools-sidebar .tool-section { flex: 1 1 220px; }
         }
+
+        /* ═══════════════════════════════════════════════════
+           RESPONSIVE — mobile (≤ 768px)
+        ═══════════════════════════════════════════════════ */
         @media (max-width: 768px) {
             body { padding: 8px; }
             .container { border-radius: 12px; }
@@ -225,21 +598,31 @@
             .header h1 { font-size: 1.25em; }
             .header p  { font-size: .85em; }
             .header-badge { width: 42px; height: 42px; font-size: .95em; }
+
             .tabs { font-size: .8em; }
             .tab  { padding: 12px 6px; }
+
             .content { padding: 14px; }
+
             .exercises-header { flex-direction: column; align-items: stretch; }
             .exercises-header > div { flex-direction: column; }
             .exercises-header .btn { width: 100%; }
-            .exercise-grid, .schema-list { grid-template-columns: 1fr; }
+
+            .exercise-grid,
+            .schema-list { grid-template-columns: 1fr; }
+
             .tools-sidebar { flex-direction: column; }
             .tools-sidebar .tool-section { flex: 1 1 auto; }
             .tool-grid { grid-template-columns: 1fr 1fr; }
+
             .modal { padding: 20px 0; overflow-y: auto; }
             .modal-content { width: 92%; margin: 20px auto; padding: 20px; }
+
             .schema-actions { flex-direction: column; }
+
             .toast { left: 12px; right: 12px; top: 12px; text-align: center; }
         }
+
         @media (max-width: 480px) {
             .header h1 { font-size: 1.05em; }
             .color-grid { grid-template-columns: repeat(4, 1fr); }
@@ -256,11 +639,14 @@
         </div>
         <p>Programme d'entraînement — crée tes exercices, tes schémas tactiques et tes séances</p>
     </div>
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('exercises', this)">📚 Exercices</div>
-        <div class="tab"       onclick="switchTab('schemas', this)">🎨 Créer des Schémas</div>
+
+    <div class="tabs" role="tablist">
+        <button type="button" class="tab active" role="tab" aria-selected="true"  onclick="switchTab('exercises', this)">📚 Exercices</button>
+        <button type="button" class="tab"        role="tab" aria-selected="false" onclick="switchTab('schemas', this)">🎨 Créer des Schémas</button>
     </div>
+
     <div class="content">
+        <!-- ── Onglet Exercices ── -->
         <div id="exercises" class="tab-content active">
             <div class="exercises-header">
                 <h2>Exercices d'Entraînement</h2>
@@ -273,14 +659,19 @@
                 </div>
             </div>
             <div id="exerciseGrid" class="exercise-grid"></div>
+
             <div class="saved-sessions">
                 <h3 style="margin-bottom:20px">📚 Séances sauvegardées</h3>
                 <div id="sessionsList" class="schema-list"></div>
             </div>
         </div>
+
+        <!-- ── Onglet Schémas ── -->
         <div id="schemas" class="tab-content">
             <h2 style="margin-bottom:20px;color:var(--kdc-abysse)">Créer des Schémas Tactiques</h2>
+
             <div class="schema-workspace">
+                <!-- Outils -->
                 <div class="tools-sidebar">
                     <div class="tool-section">
                         <h4>🎨 Outils de dessin</h4>
@@ -295,10 +686,14 @@
                             <button class="btn btn-blue tool-btn"        onclick="selectTool('text',    this)">📝 Texte</button>
                         </div>
                     </div>
+
                     <div class="tool-section">
                         <h4>🎨 Couleur active</h4>
-                        <div class="color-grid" id="colorGrid"></div>
+                        <div class="color-grid" id="colorGrid">
+                            <!-- généré en JS -->
+                        </div>
                     </div>
+
                     <div class="tool-section">
                         <h4>🏟️ Terrain</h4>
                         <select id="terrainSelect" onchange="currentSport=this.value; redrawCanvas();">
@@ -311,12 +706,20 @@
                             <option value="rugby">🏉 Rugby</option>
                         </select>
                     </div>
+
                     <div class="tool-section">
                         <h4>⚙️ Actions</h4>
+                        <div style="display:flex;gap:8px;margin-bottom:8px;">
+                            <button class="btn btn-blue action-btn" id="undoBtn" onclick="undoCanvas()" style="margin-top:0;flex:1;" disabled aria-label="Annuler la dernière action">↩️ Annuler</button>
+                            <button class="btn btn-blue action-btn" id="redoBtn" onclick="redoCanvas()" style="margin-top:0;flex:1;" disabled aria-label="Rétablir l'action annulée">↪️ Rétablir</button>
+                        </div>
                         <button class="btn btn-green action-btn" onclick="saveSchema()">💾 Sauvegarder</button>
                         <button class="btn btn-red   action-btn" onclick="clearCanvas()">🗑️ Effacer tout</button>
+                        <div id="storageIndicator" style="margin-top:10px;font-size:.8em;color:#666;text-align:center;"></div>
                     </div>
                 </div>
+
+                <!-- Canvas -->
                 <div class="canvas-area">
                     <div id="canvas-container">
                         <canvas id="schemaCanvas" width="900" height="600"></canvas>
@@ -325,6 +728,8 @@
                         💡 Cliquez sur le terrain pour placer des éléments • Glissez pour créer des flèches et zones
                     </div>
                 </div>
+
+                <!-- Notes -->
                 <div class="notes-panel">
                     <div class="panel-section">
                         <h3>🔺 Plots placés</h3>
@@ -333,13 +738,16 @@
                     <div class="panel-section notes-container">
                         <h3>📝 Notes tactiques</h3>
                         <div class="note-input-area">
-                            <input type="text" id="noteInput" class="note-input" placeholder="Ajouter une note..." onkeypress="if(event.key==='Enter') addNote()">
+                            <input type="text" id="noteInput" class="note-input"
+                                   placeholder="Ajouter une note..."
+                                   onkeypress="if(event.key==='Enter') addNote()">
                             <button class="btn btn-blue add-note-btn" onclick="addNote()">+</button>
                         </div>
                         <div id="notesList" class="notes-list"></div>
                     </div>
                 </div>
             </div>
+
             <div class="saved-schemas">
                 <h3 style="margin-bottom:15px">📁 Schémas Sauvegardés</h3>
                 <div id="schemaList" class="schema-list"></div>
@@ -347,6 +755,8 @@
         </div>
     </div>
 </div>
+
+<!-- Modal exercice -->
 <div id="exerciseModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -392,17 +802,58 @@
         </form>
     </div>
 </div>
+
 <script>
 'use strict';
+
+/* ═══════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════ */
 const ls = {
     get: (k, fallback = null) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
-    set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { console.error('localStorage:', e); return false; } }
+    set: (k, v) => {
+        try {
+            localStorage.setItem(k, JSON.stringify(v));
+            updateStorageIndicator();
+            return true;
+        } catch (e) {
+            console.error('localStorage:', e);
+            updateStorageIndicator();
+            return false;
+        }
+    }
 };
+
+// La plupart des navigateurs plafonnent localStorage à ~5 Mo par origine —
+// on l'estime ici pour donner une alerte visuelle avant que ça ne déborde,
+// plutôt que de laisser l'utilisateur découvrir l'échec au moment de sauver.
+const ESTIMATED_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024;
+function updateStorageIndicator() {
+    const el = document.getElementById('storageIndicator');
+    if (!el) return;
+    let bytes = 0;
+    try {
+        for (const k in localStorage) {
+            if (!Object.prototype.hasOwnProperty.call(localStorage, k)) continue;
+            bytes += (localStorage[k] || '').length * 2;
+        }
+    } catch { /* accès bloqué (navigation privée stricte, etc.) — on ignore */ }
+    const pct = Math.min(100, Math.round((bytes / ESTIMATED_STORAGE_LIMIT_BYTES) * 100));
+    const kb = Math.round(bytes / 1024);
+    let color = 'var(--kdc-success)';
+    if (pct >= 90) color = 'var(--kdc-danger)';
+    else if (pct >= 70) color = 'var(--kdc-ambre-dark)';
+    el.innerHTML = `Stockage local : <strong style="color:${color}">${kb} Ko (~${pct}%)</strong>`;
+}
+
+// Échappe tout texte injecté via innerHTML — les exercices, notes et schémas
+// peuvent venir d'un fichier JSON importé, donc jamais de confiance aveugle.
 function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, c => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
 }
+
 function showToast(msg, color = 'var(--kdc-success)') {
     const t = document.createElement('div');
     t.className = 'toast';
@@ -414,13 +865,23 @@ function showToast(msg, color = 'var(--kdc-success)') {
         setTimeout(() => t.remove(), 300);
     }, 3000);
 }
+
+/* ═══════════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════════ */
 function switchTab(name, el) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
+    el.setAttribute('aria-selected', 'true');
     document.getElementById(name).classList.add('active');
 }
+
+/* ═══════════════════════════════════════════════════
+   EXERCISES
+═══════════════════════════════════════════════════ */
 let customExercises = ls.get('customExercises', []);
+
 function displayExercises() {
     const grid = document.getElementById('exerciseGrid');
     grid.innerHTML = '';
@@ -432,7 +893,7 @@ function displayExercises() {
         const card = document.createElement('div');
         card.className = 'exercise-card';
         card.innerHTML = `
-            <button class="delete-exercise-btn" onclick="deleteExercise('${ex.id}')" title="Supprimer">✕</button>
+            <button class="delete-exercise-btn" onclick="deleteExercise('${ex.id}')" aria-label="Supprimer l'exercice ${escapeHtml(ex.name)}">✕</button>
             <h3>${escapeHtml(ex.icon || '📋')} ${escapeHtml(ex.name)} <span class="custom-badge">Perso</span></h3>
             ${ex.but       ? `<p><strong>🎯 But :</strong> ${escapeHtml(ex.but)}</p>` : ''}
             ${ex.objectifs ? `<p><strong>📌 Objectifs :</strong> ${escapeHtml(ex.objectifs)}</p>` : ''}
@@ -447,6 +908,7 @@ function displayExercises() {
         grid.appendChild(card);
     });
 }
+
 function openExerciseModal() {
     const select = document.getElementById('exerciseSchemaLink');
     select.innerHTML = '<option value="">-- Aucun schéma --</option>';
@@ -459,15 +921,18 @@ function openExerciseModal() {
     document.getElementById('schemaPreviewContainer').style.display = 'none';
     document.getElementById('exerciseModal').style.display = 'block';
 }
+
 function closeExerciseModal() {
     document.getElementById('exerciseModal').style.display = 'none';
     document.getElementById('exerciseForm').reset();
 }
+
 function createExercise(e) {
     e.preventDefault();
     const schemas   = ls.get('dodgeballSchemasComplete', []);
     const idx       = document.getElementById('exerciseSchemaLink').value;
     const linked    = idx !== '' && schemas[idx] ? { name: schemas[idx].name, thumbnail: schemas[idx].thumbnail, date: schemas[idx].date } : null;
+
     customExercises.push({
         id:           'custom-' + Date.now(),
         name:         document.getElementById('exerciseName').value,
@@ -485,17 +950,24 @@ function createExercise(e) {
     closeExerciseModal();
     showToast('✅ Exercice créé avec succès !');
 }
+
 function deleteExercise(id) {
     if (!confirm('Supprimer cet exercice personnalisé ?')) return;
     customExercises = customExercises.filter(ex => ex.id !== id);
     ls.set('customExercises', customExercises);
     displayExercises();
 }
+
+/* ═══════════════════════════════════════════════════
+   IMPORT / EXPORT EXERCICES
+═══════════════════════════════════════════════════ */
 function exportExercises() {
     if (!customExercises.length) {
         showToast('⚠️ Aucun exercice à exporter', 'var(--kdc-ambre-dark)');
         return;
     }
+    // Enrichit chaque schéma lié avec ses données complètes (éléments, plots, notes)
+    // pour qu'il puisse être réintégré tel quel dans l'onglet "Créer des Schémas" à l'import.
     const schemasFull = ls.get('dodgeballSchemasComplete', []);
     const enriched = customExercises.map(ex => {
         if (!ex.linkedSchema) return ex;
@@ -512,19 +984,25 @@ function exportExercises() {
     URL.revokeObjectURL(a.href);
     showToast('✅ Exercices exportés !');
 }
+
 function importExercises(event) {
     const file = event.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = function (e) {
         try {
             const data = JSON.parse(e.target.result);
             const list = Array.isArray(data) ? data : (Array.isArray(data.exercises) ? data.exercises : null);
             if (!list) throw new Error('le fichier doit contenir un tableau d\'exercices');
+
             let count = 0;
             let schemaCount = 0;
             list.forEach((ex, i) => {
                 if (!ex || !ex.name) return;
+
+                // Si l'exercice a un schéma lié, on l'intègre aussi dans la liste
+                // des schémas sauvegardés (onglet "Créer des Schémas"), sauf s'il y existe déjà.
                 let linked = null;
                 if (ex.linkedSchema && ex.linkedSchema.name) {
                     const already = savedSchemas.find(s => s.name === ex.linkedSchema.name);
@@ -545,6 +1023,7 @@ function importExercises(event) {
                         date:      ex.linkedSchema.date || ''
                     };
                 }
+
                 customExercises.push({
                     id:           'custom-' + Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2, 7),
                     name:         ex.name,
@@ -557,7 +1036,9 @@ function importExercises(event) {
                 });
                 count++;
             });
+
             if (!count) throw new Error('aucun exercice valide trouvé dans le fichier');
+
             ls.set('customExercises', customExercises);
             displayExercises();
             if (schemaCount) {
@@ -575,6 +1056,8 @@ function importExercises(event) {
     reader.onerror = () => showToast('❌ Erreur de lecture du fichier', 'var(--kdc-danger)');
     reader.readAsText(file);
 }
+
+// Aperçu schéma dans la modal
 document.getElementById('exerciseSchemaLink').addEventListener('change', function () {
     const schemas = ls.get('dodgeballSchemasComplete', []);
     const schema  = schemas[this.value];
@@ -587,6 +1070,8 @@ document.getElementById('exerciseSchemaLink').addEventListener('change', functio
         preview.style.display = 'none';
     }
 });
+
+// Fermer modal en cliquant hors contenu, ou avec Échap
 document.getElementById('exerciseModal').addEventListener('click', function (e) {
     if (e.target === this) closeExerciseModal();
 });
@@ -595,8 +1080,13 @@ document.addEventListener('keydown', function (e) {
         closeExerciseModal();
     }
 });
+
+/* ═══════════════════════════════════════════════════
+   CANVAS
+═══════════════════════════════════════════════════ */
 const canvas = document.getElementById('schemaCanvas');
 const ctx    = canvas.getContext('2d');
+
 let currentTool  = 'player';
 let currentColor = '#015394';
 let isDrawing    = false;
@@ -607,8 +1097,79 @@ let notes        = [];
 let savedSchemas = ls.get('dodgeballSchemasComplete', []);
 let selectedPlot = null;
 let currentSport = '';
+
+/* ═══════════════════════════════════════════════════
+   HISTORIQUE (Annuler / Rétablir)
+   Pile de snapshots {elements, plots} — chaque mutation du dessin
+   pousse un nouvel état. Ctrl+Z / Ctrl+Y (ou les boutons) naviguent
+   dans la pile sans jamais re-déclencher un push pendant la navigation.
+═══════════════════════════════════════════════════ */
+let history = [{ elements: [], plots: [] }];
+let historyIndex = 0;
+let isRestoringHistory = false;
+
+function pushHistory() {
+    if (isRestoringHistory) return;
+    history = history.slice(0, historyIndex + 1);
+    history.push({ elements: JSON.parse(JSON.stringify(elements)), plots: JSON.parse(JSON.stringify(plots)) });
+    historyIndex = history.length - 1;
+    updateUndoRedoButtons();
+}
+
+function resetHistory() {
+    history = [{ elements: JSON.parse(JSON.stringify(elements)), plots: JSON.parse(JSON.stringify(plots)) }];
+    historyIndex = 0;
+    updateUndoRedoButtons();
+}
+
+function restoreHistoryState(index) {
+    isRestoringHistory = true;
+    const state = history[index];
+    elements = JSON.parse(JSON.stringify(state.elements));
+    plots    = JSON.parse(JSON.stringify(state.plots));
+    updatePlotList();
+    redrawCanvas();
+    isRestoringHistory = false;
+}
+
+function undoCanvas() {
+    if (historyIndex <= 0) return;
+    historyIndex--;
+    restoreHistoryState(historyIndex);
+    updateUndoRedoButtons();
+}
+
+function redoCanvas() {
+    if (historyIndex >= history.length - 1) return;
+    historyIndex++;
+    restoreHistoryState(historyIndex);
+    updateUndoRedoButtons();
+}
+
+function updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    if (undoBtn) undoBtn.disabled = historyIndex <= 0;
+    if (redoBtn) redoBtn.disabled = historyIndex >= history.length - 1;
+}
+
+document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea') return;
+    if (!(e.ctrlKey || e.metaKey)) return;
+    if (e.key === 'z' || e.key === 'Z') {
+        e.preventDefault();
+        if (e.shiftKey) redoCanvas(); else undoCanvas();
+    } else if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        redoCanvas();
+    }
+});
+
+// ── Palette de couleurs (charte KDC + teintes utiles au schéma) ──
 const PALETTE = ['#015394','#f8bf4e','#fdc503','#243455','#d0453a','#2e8b57',
                  '#ffffff','#1a2640','#1a6aab','#d2e1ec','#7fa9c9','#607d8b'];
+
 (function buildPalette() {
     const grid = document.getElementById('colorGrid');
     PALETTE.forEach((c, i) => {
@@ -623,11 +1184,19 @@ const PALETTE = ['#015394','#f8bf4e','#fdc503','#243455','#d0453a','#2e8b57',
         grid.appendChild(d);
     });
 })();
+
+// ── Tool select ──
 function selectTool(tool, btn) {
     currentTool = tool;
     document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 }
+
+/* ═══════════════════════════════════════════════════
+   TERRAIN DRAWING
+   (Les couleurs de terrain reproduisent le marquage réel de chaque
+   sport — indépendantes de la charte graphique du club.)
+═══════════════════════════════════════════════════ */
 const TERRAINS = {
     volleyball: { label: '🏐 Volleyball', color: '#f5f5dc', lineColor: '#c8a200' },
     basketball: { label: '🏀 Basketball', color: '#f4a460', lineColor: '#8b4513' },
@@ -636,9 +1205,11 @@ const TERRAINS = {
     badminton:  { label: '🏸 Badminton',  color: '#e8f4fd', lineColor: '#1565c0' },
     rugby:      { label: '🏉 Rugby',       color: '#3a8c3a', lineColor: '#ffffff' }
 };
+
 function drawLine(x1, y1, x2, y2) {
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
 }
+
 function drawCourt() {
     if (currentSport && TERRAINS[currentSport]) {
         drawSportTerrain(currentSport);
@@ -646,6 +1217,7 @@ function drawCourt() {
         drawDodgeballCourt();
     }
 }
+
 function drawDodgeballCourt() {
     const W = canvas.width, H = canvas.height;
     const mx = 55, my = 45;
@@ -653,6 +1225,8 @@ function drawDodgeballCourt() {
     const TW = TR - TL, TH = TB - TT;
     const cx = TL + TW / 2, cy = TT + TH / 2;
     const scX = TW / 18, scY = TH / 9;
+
+    // Fond beige + bandes
     ctx.fillStyle = '#f5e6c8';
     ctx.fillRect(0, 0, W, H);
     ctx.save();
@@ -661,35 +1235,51 @@ function drawDodgeballCourt() {
         ctx.fillRect(TL + i * TW / 9, TT, TW / 9, TH);
     }
     ctx.restore();
+
+    // Zones colorées
     ctx.fillStyle = 'rgba(1,83,148,.10)';    ctx.fillRect(TL, TT, 6 * scX, TH);
     ctx.fillStyle = 'rgba(248,191,78,.18)';  ctx.fillRect(cx - 1.5 * scX, TT, 3 * scX, TH);
     ctx.fillStyle = 'rgba(36,52,85,.10)';    ctx.fillRect(TR - 6 * scX, TT, 6 * scX, TH);
+
+    // Files d'attente
     ctx.fillStyle = 'rgba(255,255,255,.08)';
     [[TL - 30, TT], [TL - 30, TT + TH / 2], [TR, TT], [TR, TT + TH / 2]].forEach(([x, y]) =>
         ctx.fillRect(x, y, 30, TH / 2)
     );
+
+    // Lignes
     ctx.strokeStyle = '#DAA520'; ctx.lineWidth = 3;
     ctx.strokeRect(TL, TT, TW, TH);
+
     ctx.lineWidth = 4;
     drawLine(cx, TT, cx, TB);
     ctx.lineWidth = 3;
+
+    // Zone neutre pointillée
     ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2.5;
     ctx.setLineDash([8, 4]);
     drawLine(cx - 1.5 * scX, TT, cx - 1.5 * scX, TB);
     drawLine(cx + 1.5 * scX, TT, cx + 1.5 * scX, TB);
     ctx.setLineDash([]);
+
+    // Lignes d'attaque
     ctx.strokeStyle = '#DAA520';
     drawLine(TL + 3 * scX, TT, TL + 3 * scX, TB);
     drawLine(TR - 3 * scX, TT, TR - 3 * scX, TB);
+
+    // Marques balles
     ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 3;
     [-3, -1.5, 0, 1.5, 3].forEach(dy => {
         const ym = cy + dy * scY;
         drawLine(cx, ym - 10, cx, ym + 10);
     });
+
+    // Labels
     ctx.font = 'bold 13px Montserrat, Segoe UI'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(36,52,85,.85)';
     ctx.fillText('ÉQUIPE A',   TL + 3 * scX / 2, TT - 14);
     ctx.fillText('ZONE NEUTRE', cx,               TT - 14);
     ctx.fillText('ÉQUIPE B',   TR - 3 * scX / 2, TT - 14);
+
     ctx.font = '11px Karla, Segoe UI'; ctx.fillStyle = 'rgba(36,52,85,.65)';
     [
         ['3m',   TL + 1.5 * scX],
@@ -698,9 +1288,11 @@ function drawDodgeballCourt() {
         ['1,5m', cx + 0.75 * scX],
         ['3m',   TR - 1.5 * scX]
     ].forEach(([t, x]) => ctx.fillText(t, x, TB + 18));
+
     ctx.fillStyle = '#01416f'; ctx.font = 'bold 14px Montserrat, Segoe UI';
     ctx.fillText('🐙 Terrain Dodgeball officiel — 18m × 9m (WDBF / FDF)', W / 2, H - 10);
 }
+
 function drawSportTerrain(sport) {
     const t = TERRAINS[sport];
     const w = canvas.width, h = canvas.height;
@@ -708,11 +1300,13 @@ function drawSportTerrain(sport) {
     const TL = mx, TR = w - mx, TT = my, TB = h - my;
     const TW = TR - TL, TH = TB - TT;
     const cy = TT + TH / 2;
+
     ctx.fillStyle = t.color;
     ctx.fillRect(0, 0, w, h);
     ctx.strokeStyle = t.lineColor;
     ctx.lineWidth = 3;
     ctx.strokeRect(TL, TT, TW, TH);
+
     if (sport === 'volleyball') {
         ctx.lineWidth = 5;
         drawLine(w / 2, TT, w / 2, TB);
@@ -726,39 +1320,52 @@ function drawSportTerrain(sport) {
             drawLine(x, y, x + dir * 14, y);
         });
         ctx.setLineDash([]);
+
     } else if (sport === 'basketball') {
         const sc = TW / 28;
+        // Bandes parquet
         ctx.save();
         ctx.strokeStyle = 'rgba(180,130,60,.3)'; ctx.lineWidth = 1;
         for (let ys = TT + 12; ys < TB; ys += 12) drawLine(TL, ys, TR, ys);
         ctx.restore();
+
         ctx.fillStyle = 'rgba(180,80,60,.25)';
         ctx.fillRect(TL, cy - 2.45*sc, 5.8*sc, 4.9*sc);
         ctx.fillRect(TR - 5.8*sc, cy - 2.45*sc, 5.8*sc, 4.9*sc);
+
         ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 2.5;
         drawLine(TL + TW/2, TT, TL + TW/2, TB);
+
+        // Cercle central
         ctx.beginPath(); ctx.arc(TL + TW/2, cy, 1.8*sc, 0, Math.PI*2); ctx.stroke();
         ctx.fillStyle = 'rgba(180,80,60,.18)';
         ctx.beginPath(); ctx.arc(TL + TW/2, cy, 1.8*sc, 0, Math.PI*2); ctx.fill();
+
         [[TL, 1], [TR, -1]].forEach(([fondX, dir]) => {
             const hoopX = fondX + dir * 1.575 * sc;
             const ftX   = fondX + dir * 5.8 * sc;
             const pw    = 2.45 * sc;
+
             ctx.beginPath();
             ctx.rect(dir === 1 ? fondX : fondX - 5.8*sc, cy - pw, 5.8*sc, pw*2);
             ctx.stroke();
+
             ctx.beginPath(); ctx.arc(ftX, cy, 1.8*sc, -Math.PI/2, Math.PI/2, dir === -1); ctx.stroke();
             ctx.setLineDash([7,5]);
             ctx.beginPath(); ctx.arc(ftX, cy, 1.8*sc, Math.PI/2, -Math.PI/2, dir === -1); ctx.stroke();
             ctx.setLineDash([]);
+
             ctx.beginPath(); ctx.arc(hoopX, cy, 1.25*sc, -Math.PI/2, Math.PI/2, dir === -1); ctx.stroke();
+
             ctx.lineWidth = 5;
             drawLine(fondX, cy - 0.9*sc, fondX, cy + 0.9*sc);
             ctx.lineWidth = 2.5;
+
             ctx.fillStyle = '#8b4513';
             ctx.beginPath(); ctx.arc(hoopX, cy, 0.225*sc, 0, Math.PI*2); ctx.fill();
             ctx.beginPath(); ctx.arc(hoopX, cy, 0.225*sc, 0, Math.PI*2); ctx.stroke();
             ctx.fillStyle = '#d4a85a';
+
             const r3 = 6.75 * sc;
             const rawDy    = TH / 2 - 0.9 * sc;
             const clampDy  = Math.min(rawDy, r3 * 0.999);
@@ -769,12 +1376,14 @@ function drawSportTerrain(sport) {
             drawLine(fondX, yTop, hoopX + Math.cos(aTop)*r3, yTop);
             drawLine(fondX, yBot, hoopX + Math.cos(aBot)*r3, yBot);
             ctx.beginPath(); ctx.arc(hoopX, cy, r3, aTop, aBot, dir === -1); ctx.stroke();
+
             [0.85, 1.7, 2.95].forEach(d => {
                 const mx2 = fondX + dir * d * sc;
                 drawLine(mx2, cy - pw - 8, mx2, cy - pw);
                 drawLine(mx2, cy + pw, mx2, cy + pw + 8);
             });
         });
+
     } else if (sport === 'football') {
         ctx.beginPath(); ctx.arc(w/2, h/2, 70, 0, Math.PI*2); ctx.stroke();
         drawLine(w/2, my, w/2, h-my);
@@ -786,6 +1395,7 @@ function drawSportTerrain(sport) {
         ctx.strokeRect(mx-18, h/2-28, 18, 56);
         ctx.strokeRect(w-mx, h/2-28, 18, 56);
         ctx.lineWidth = 3;
+
     } else if (sport === 'handball') {
         drawLine(w/2, my, w/2, h-my);
         ctx.beginPath(); ctx.arc(w/2, h/2, 50, 0, Math.PI*2); ctx.stroke();
@@ -795,6 +1405,7 @@ function drawSportTerrain(sport) {
         ctx.strokeRect(mx-20, h/2-32, 20, 64);
         ctx.strokeRect(w-mx, h/2-32, 20, 64);
         ctx.lineWidth = 3;
+
     } else if (sport === 'badminton') {
         const couloir = TH * 0.46 / 6.1;
         drawLine(TL, TT + couloir, TR, TT + couloir);
@@ -810,8 +1421,10 @@ function drawSportTerrain(sport) {
         const servLong = TW/2 * 0.76 / 6.7;
         drawLine(TL + servLong, TT + couloir, TL + servLong, TB - couloir);
         drawLine(TR - servLong, TT + couloir, TR - servLong, TB - couloir);
+
     } else if (sport === 'rugby') {
         const scX = TW / 120, scY = TH / 70;
+        // Bandes gazon
         for (let i = 0; i < 12; i++) {
             if (i % 2 === 0) { ctx.fillStyle = 'rgba(0,0,0,.06)'; ctx.fillRect(TL + i*(TW/12), TT, TW/12, TH); }
         }
@@ -823,6 +1436,7 @@ function drawSportTerrain(sport) {
         ctx.lineWidth = 2;
         const m10 = 10 * scX, m22 = 22 * scX;
         [TL+TW/2-m10, TL+TW/2+m10, TL+enBut+m22, TR-enBut-m22].forEach(x => drawLine(x, TT, x, TB));
+
         const postW = 5.6 * scY, postH = 15 * scY;
         [[TL, 1], [TR, -1]].forEach(([px, dir]) => {
             ctx.lineWidth = 3; ctx.strokeStyle = '#ffff00';
@@ -834,9 +1448,18 @@ function drawSportTerrain(sport) {
         ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff';
         ctx.strokeRect(TL, TT, TW, TH);
     }
+
     ctx.font = 'bold 15px Montserrat, Segoe UI'; ctx.textAlign = 'center'; ctx.fillStyle = t.lineColor;
     ctx.fillText(t.label, w/2, h - 12);
 }
+
+/* ═══════════════════════════════════════════════════
+   CANVAS EVENTS
+   (Pointer Events : couvre souris, tactile et stylet en un seul jeu
+   de handlers. getCanvasPos convertit la position à l'écran en
+   coordonnées réelles du canvas, quelle que soit sa taille affichée
+   — indispensable car le canvas est redimensionné en CSS sur mobile.)
+═══════════════════════════════════════════════════ */
 function getCanvasPos(e) {
     const r = canvas.getBoundingClientRect();
     const scaleX = canvas.width  / r.width;
@@ -846,6 +1469,7 @@ function getCanvasPos(e) {
         y: (e.clientY - r.top)  * scaleY
     };
 }
+
 canvas.addEventListener('pointerdown', e => {
     canvas.setPointerCapture(e.pointerId);
     const p = getCanvasPos(e);
@@ -853,6 +1477,7 @@ canvas.addEventListener('pointerdown', e => {
     startY = p.y;
     isDrawing = true;
 });
+
 canvas.addEventListener('pointermove', e => {
     if (!isDrawing || !['arrow','line','zone'].includes(currentTool)) return;
     const p = getCanvasPos(e);
@@ -861,6 +1486,7 @@ canvas.addEventListener('pointermove', e => {
     ctx.strokeStyle = currentColor;
     ctx.fillStyle   = currentColor + '33';
     ctx.lineWidth = 3; ctx.setLineDash([]);
+
     if (currentTool === 'zone') {
         ctx.fillRect(startX, startY, cx2 - startX, cy2 - startY);
         ctx.strokeRect(startX, startY, cx2 - startX, cy2 - startY);
@@ -869,6 +1495,7 @@ canvas.addEventListener('pointermove', e => {
         if (currentTool === 'arrow') drawArrowHead(cx2, cy2, Math.atan2(cy2 - startY, cx2 - startX));
     }
 });
+
 canvas.addEventListener('pointerup', e => {
     if (!isDrawing) return;
     isDrawing = false;
@@ -876,9 +1503,11 @@ canvas.addEventListener('pointerup', e => {
     const endX = p.x;
     const endY = p.y;
     const el   = { type: currentTool, color: currentColor, startX, startY, endX, endY };
+
+    let mutated = true;
     if (currentTool === 'text') {
         const text = prompt('Entrez votre texte :');
-        if (text) { el.text = text; elements.push(el); }
+        if (text) { el.text = text; elements.push(el); } else { mutated = false; }
     } else if (currentTool === 'plot') {
         const name = prompt('Nom du plot (optionnel) :') || `Plot ${plots.length + 1}`;
         el.name = name;
@@ -889,7 +1518,9 @@ canvas.addEventListener('pointerup', e => {
         elements.push(el);
     }
     redrawCanvas();
+    if (mutated) pushHistory();
 });
+
 function drawArrowHead(x, y, angle) {
     ctx.fillStyle = currentColor;
     ctx.beginPath();
@@ -898,12 +1529,17 @@ function drawArrowHead(x, y, angle) {
     ctx.lineTo(x - 15 * Math.cos(angle + Math.PI/6), y - 15 * Math.sin(angle + Math.PI/6));
     ctx.closePath(); ctx.fill();
 }
+
+/* ═══════════════════════════════════════════════════
+   REDRAW
+═══════════════════════════════════════════════════ */
 function redrawCanvas() {
     drawCourt();
     elements.forEach(el => {
         ctx.fillStyle   = el.color;
         ctx.strokeStyle = el.color;
         ctx.setLineDash([]);
+
         switch (el.type) {
             case 'player':
                 ctx.save(); ctx.translate(el.startX, el.startY);
@@ -913,11 +1549,14 @@ function redrawCanvas() {
                     ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
                 });
                 ctx.restore(); break;
+
             case 'opponent':
                 ctx.beginPath(); ctx.arc(el.startX, el.startY, 14, 0, Math.PI*2);
                 ctx.lineWidth = 3; ctx.stroke(); break;
+
             case 'ball':
                 ctx.beginPath(); ctx.arc(el.startX, el.startY, 10, 0, Math.PI*2); ctx.fill(); break;
+
             case 'plot':
                 ctx.beginPath();
                 ctx.moveTo(el.startX, el.startY - 15);
@@ -929,6 +1568,7 @@ function redrawCanvas() {
                     ctx.fillText(el.name, el.startX, el.startY + 25);
                 }
                 break;
+
             case 'arrow': {
                 ctx.lineWidth = 3;
                 drawLine(el.startX, el.startY, el.endX, el.endY);
@@ -943,16 +1583,22 @@ function redrawCanvas() {
             case 'line':
                 ctx.lineWidth = 3;
                 drawLine(el.startX, el.startY, el.endX, el.endY); break;
+
             case 'zone':
                 ctx.fillStyle = el.color + '33';
                 ctx.fillRect(el.startX, el.startY, el.endX - el.startX, el.endY - el.startY);
                 ctx.strokeRect(el.startX, el.startY, el.endX - el.startX, el.endY - el.startY); break;
+
             case 'text':
                 ctx.font = 'bold 16px Karla, Arial'; ctx.textAlign = 'left';
                 ctx.fillText(el.text, el.startX, el.startY); break;
         }
     });
 }
+
+/* ═══════════════════════════════════════════════════
+   NOTES & PLOTS
+═══════════════════════════════════════════════════ */
 function addNote() {
     const input = document.getElementById('noteInput');
     const text  = input.value.trim();
@@ -961,6 +1607,7 @@ function addNote() {
     input.value = '';
     updateNotesList();
 }
+
 function updateNotesList() {
     const list = document.getElementById('notesList');
     if (!notes.length) {
@@ -976,7 +1623,9 @@ function updateNotesList() {
             </div>
         </div>`).join('');
 }
+
 function deleteNote(i) { notes.splice(i, 1); updateNotesList(); }
+
 function updatePlotList() {
     const list = document.getElementById('plotList');
     if (!plots.length) {
@@ -987,16 +1636,21 @@ function updatePlotList() {
     plots.forEach((p, i) => {
         const item = document.createElement('div');
         item.className = 'plot-item' + (selectedPlot === i ? ' selected' : '');
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-pressed', selectedPlot === i ? 'true' : 'false');
         item.innerHTML = `
             <div class="plot-info">
                 <div class="plot-color" style="background:${p.color};"></div>
                 <span>${escapeHtml(p.name)}</span>
             </div>
-            <button class="delete-plot-btn" onclick="deletePlot(${i});event.stopPropagation();">✕</button>`;
+            <button class="delete-plot-btn" onclick="deletePlot(${i});event.stopPropagation();" aria-label="Supprimer le plot ${escapeHtml(p.name)}">✕</button>`;
         item.onclick = () => { selectedPlot = i; updatePlotList(); };
+        item.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectedPlot = i; updatePlotList(); } };
         list.appendChild(item);
     });
 }
+
 function deletePlot(index) {
     let plotIdx = 0;
     elements = elements.filter(el => {
@@ -1006,25 +1660,41 @@ function deletePlot(index) {
     plots.splice(index, 1);
     updatePlotList();
     redrawCanvas();
+    pushHistory();
 }
+
 function clearCanvas() {
     if (!confirm('Effacer tout le schéma, les plots et les notes ?')) return;
     elements = []; plots = []; notes = [];
     document.getElementById('noteInput').value = '';
     updatePlotList(); updateNotesList(); redrawCanvas();
+    pushHistory();
 }
+
+/* ═══════════════════════════════════════════════════
+   SAVE / LOAD SCHEMAS
+═══════════════════════════════════════════════════ */
+// Miniature réduite (450×300) et compressée en JPEG plutôt qu'en PNG plein
+// format : le localStorage a une limite de quelques Mo, et des dizaines de
+// schémas en PNG 900×600 la remplissent vite.
+function makeThumbnail() {
+    const tmp = document.createElement('canvas');
+    tmp.width = canvas.width / 2;
+    tmp.height = canvas.height / 2;
+    tmp.getContext('2d').drawImage(canvas, 0, 0, tmp.width, tmp.height);
+    return tmp.toDataURL('image/jpeg', 0.7);
+}
+
 function saveSchema() {
     const name = prompt('Nom du schéma :');
     if (!name) return;
-    const tmp = document.createElement('canvas');
-    tmp.width = canvas.width; tmp.height = canvas.height;
-    tmp.getContext('2d').drawImage(canvas, 0, 0);
+
     savedSchemas.push({
         name,
         elements: JSON.parse(JSON.stringify(elements)),
         plots:    JSON.parse(JSON.stringify(plots)),
         notes:    JSON.parse(JSON.stringify(notes)),
-        thumbnail: tmp.toDataURL(),
+        thumbnail: makeThumbnail(),
         date:     new Date().toLocaleString('fr-FR')
     });
     if (!ls.set('dodgeballSchemasComplete', savedSchemas)) {
@@ -1035,6 +1705,7 @@ function saveSchema() {
     displaySavedSchemas();
     showToast('✅ Schéma sauvegardé avec succès !');
 }
+
 function displaySavedSchemas() {
     const list = document.getElementById('schemaList');
     if (!savedSchemas.length) {
@@ -1062,21 +1733,29 @@ function displaySavedSchemas() {
         list.appendChild(item);
     });
 }
+
 function loadSchema(i) {
     const s = savedSchemas[i];
     elements = JSON.parse(JSON.stringify(s.elements));
     plots    = JSON.parse(JSON.stringify(s.plots));
     notes    = JSON.parse(JSON.stringify(s.notes));
     updatePlotList(); updateNotesList(); redrawCanvas();
+    resetHistory();
     showToast(`✅ Schéma "${s.name}" chargé !`);
 }
+
 function deleteSchema(i) {
     if (!confirm(`Supprimer le schéma "${savedSchemas[i].name}" ?`)) return;
     savedSchemas.splice(i, 1);
     ls.set('dodgeballSchemasComplete', savedSchemas);
     displaySavedSchemas();
 }
+
+/* ═══════════════════════════════════════════════════
+   SESSIONS
+═══════════════════════════════════════════════════ */
 let savedSessions = ls.get('dodgeballCompleteSessions', []);
+
 function saveCompleteSession() {
     const name = prompt('Nom de la séance :');
     if (!name) return;
@@ -1097,6 +1776,7 @@ function saveCompleteSession() {
     displaySavedSessions();
     showToast(`✅ Séance "${name}" sauvegardée avec succès !`);
 }
+
 function displaySavedSessions() {
     const list = document.getElementById('sessionsList');
     if (!savedSessions.length) {
@@ -1126,6 +1806,7 @@ function displaySavedSessions() {
         list.appendChild(item);
     });
 }
+
 function loadSession(i) {
     if (!confirm('Charger cette séance ? Cela remplacera les exercices et schémas actuels.')) return;
     const sess = savedSessions[i];
@@ -1139,17 +1820,24 @@ function loadSession(i) {
     }
     showToast(`✅ Séance "${sess.name}" chargée !`);
 }
+
 function deleteSession(i) {
     if (!confirm(`Supprimer la séance "${savedSessions[i].name}" ?`)) return;
     savedSessions.splice(i, 1);
     ls.set('dodgeballCompleteSessions', savedSessions);
     displaySavedSessions();
 }
+
+/* ═══════════════════════════════════════════════════
+   EXPORT WORD
+═══════════════════════════════════════════════════ */
 function exportSessionToWord(idx) {
     const sess      = savedSessions[idx];
     const exercises = sess.exercises || [];
     const schemas   = sess.schemas   || [];
     const totalMin  = exercises.reduce((s, e) => s + (e.duration || 0), 0);
+
+    // TOC exercices
     const tocEx = exercises.length
         ? exercises.map((ex, i) => `
         <tr>
@@ -1159,6 +1847,8 @@ function exportSessionToWord(idx) {
             <td style="padding:9px 14px;border-bottom:1px solid #e0e0e0;color:#888;font-size:13px;white-space:nowrap;text-align:right;">⏱️ ${Number(ex.duration)||0} min</td>
         </tr>`).join('')
         : `<tr><td colspan="2" style="padding:14px;color:#aaa;font-style:italic;text-align:center;">Aucun exercice dans cette séance</td></tr>`;
+
+    // TOC schémas non liés
     const linkedNames = new Set(exercises.filter(e => e.linkedSchema).map(e => e.linkedSchema.name));
     const unlinked    = schemas.filter(s => !linkedNames.has(s.name));
     const tocSch      = unlinked.map((s, i) => `
@@ -1168,6 +1858,8 @@ function exportSessionToWord(idx) {
             </td>
             <td style="padding:9px 14px;border-bottom:1px solid #e0e0e0;color:#888;font-size:13px;text-align:right;">${escapeHtml(s.date)}</td>
         </tr>`).join('');
+
+    // Corps exercices
     const bodyEx = exercises.map((ex, i) => `
     <a name="exercice-${i+1}" style="display:block;"></a>
     <div class="exercise">
@@ -1183,6 +1875,8 @@ function exportSessionToWord(idx) {
             ${ex.linkedSchema.thumbnail ? `<div style="text-align:center;margin:16px 0;padding:12px;background:#fff;border-radius:8px;border:1px solid #ddd;"><img src="${ex.linkedSchema.thumbnail}" alt="${escapeHtml(ex.linkedSchema.name)}" width="567" height="378" style="width:15.0cm;height:10.0cm;mso-width-source:userset;mso-height-source:userset;border-radius:6px;"></div>` : ''}
         </div>` : ''}
     </div>`).join('');
+
+    // Corps schémas non liés
     const bodySch = unlinked.map((s, i) => `
     <a name="schema-${i+1}" style="display:block;"></a>
     <div class="schema">
@@ -1191,6 +1885,7 @@ function exportSessionToWord(idx) {
         ${s.thumbnail ? `<div style="text-align:center;margin:16px 0;padding:12px;background:#fff;border-radius:8px;border:1px solid #ddd;"><img src="${s.thumbnail}" alt="${escapeHtml(s.name)}" width="567" height="378" style="width:15.0cm;height:10.0cm;mso-width-source:userset;mso-height-source:userset;border-radius:6px;"></div>` : ''}
         ${s.notes && s.notes.length ? `<div style="margin-top:12px;"><strong style="font-size:14px;">📝 Notes tactiques :</strong><ul style="margin-top:6px;">${s.notes.map((n,j) => `<li class="note">${j+1}. ${escapeHtml(n.text)}</li>`).join('')}</ul></div>` : ''}
     </div>`).join('');
+
     const now = new Date();
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><style>
@@ -1236,6 +1931,7 @@ ${unlinked.length  ? `<h2>🎯 SCHÉMAS TACTIQUES</h2>${bodySch}` : ''}
     ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR')}</p>
 </div>
 </body></html>`;
+
     const a = document.createElement('a');
     a.href     = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
     a.download = `seance_${sess.name.replace(/[^a-z0-9]/gi, '_')}_${sess.date.replace(/\//g, '-')}.doc`;
@@ -1245,12 +1941,17 @@ ${unlinked.length  ? `<h2>🎯 SCHÉMAS TACTIQUES</h2>${bodySch}` : ''}
     URL.revokeObjectURL(a.href);
     showToast('✅ Document Word exporté !');
 }
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
 drawCourt();
 displayExercises();
 displaySavedSchemas();
 displaySavedSessions();
 updatePlotList();
 updateNotesList();
+updateStorageIndicator();
 </script>
 </body>
 </html>
