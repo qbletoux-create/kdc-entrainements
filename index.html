@@ -173,6 +173,68 @@
             font-size: 1em;
         }
 
+        /* ── Menu "plus d'actions" (details/summary natif, accessible) ── */
+        .more-actions { position: relative; }
+        .more-actions summary { list-style: none; cursor: pointer; }
+        .more-actions summary::-webkit-details-marker { display: none; }
+        .more-actions-menu {
+            position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
+            background: var(--kdc-nacre); border: 2px solid var(--kdc-ecume); border-radius: 10px;
+            padding: 10px; display: flex; flex-direction: column; gap: 8px;
+            box-shadow: 0 8px 24px rgba(36,52,85,.18); min-width: 220px;
+        }
+
+        /* ── Panier de séance ── */
+        .session-cart {
+            background: var(--kdc-ecume-light);
+            border: 2px solid var(--kdc-ecume);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+        .session-cart-header {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+            margin-bottom: 12px;
+        }
+        .session-cart-header h3 { color: var(--kdc-abysse); font-size: 1.05em; }
+        .session-cart-target { display: flex; align-items: center; gap: 8px; font-family: 'Karla'; font-weight: 600; color: var(--kdc-abysse); font-size: .9em; }
+        .session-cart-target input {
+            padding: 6px 8px; border: 2px solid var(--kdc-ecume); border-radius: 6px; font-family: inherit; text-align: center;
+        }
+        .session-cart-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .session-cart-empty { text-align: center; color: #666; padding: 20px; font-size: .9em; }
+        .session-cart-item {
+            display: flex; align-items: center; gap: 10px; background: var(--kdc-nacre);
+            border-radius: 8px; padding: 10px 12px; border-left: 4px solid var(--kdc-marine);
+        }
+        .session-cart-item .position { font-family: 'Montserrat'; font-weight: 800; color: var(--kdc-marine); min-width: 22px; }
+        .session-cart-item .info { flex: 1; min-width: 0; }
+        .session-cart-item .info .name { font-weight: 700; color: var(--kdc-abysse); word-break: break-word; }
+        .session-cart-item .info .meta { font-size: .8em; color: #666; }
+        .session-cart-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .session-cart-item .actions button {
+            background: var(--kdc-ecume-light); border: none; border-radius: 6px; width: 28px; height: 28px;
+            cursor: pointer; font-size: .95em; display: flex; align-items: center; justify-content: center;
+            transition: background .2s;
+        }
+        .session-cart-item .actions button:hover { background: var(--kdc-ecume); }
+        .session-cart-item .actions button:disabled { opacity: .3; cursor: not-allowed; }
+        .session-cart-item .actions .remove-btn:hover { background: var(--kdc-danger); color: #fff; }
+        .session-cart-footer {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+            padding-top: 12px; border-top: 2px solid var(--kdc-ecume);
+        }
+        .session-cart-total { font-family: 'Montserrat'; font-weight: 800; font-size: 1.1em; }
+        .session-cart-btn { padding: 10px 18px; font-size: .9em; }
+
+        .exercise-card .add-to-session-btn {
+            margin-top: 12px; width: 100%; padding: 8px; font-size: .85em; font-weight: 700;
+            border: none; border-radius: 8px; cursor: pointer; transition: background .2s;
+            background: rgba(255,255,255,.2); color: #fff;
+        }
+        .exercise-card .add-to-session-btn:hover { background: rgba(255,255,255,.32); }
+        .exercise-card .add-to-session-btn.in-session { background: var(--kdc-ambre); color: var(--kdc-abysse-deep); }
+
         .category-filters {
             display: flex;
             gap: 8px;
@@ -640,6 +702,10 @@
             .exercises-header { flex-direction: column; align-items: stretch; }
             .exercises-header > div { flex-direction: column; }
             .exercises-header .btn { width: 100%; }
+            .more-actions-menu { position: static; box-shadow: none; margin-top: 8px; width: 100%; }
+            .session-cart-footer { flex-direction: column; align-items: stretch; }
+            .session-cart-footer > div { flex-direction: column; }
+            .session-cart-btn { width: 100%; }
 
             .exercise-grid,
             .schema-list { grid-template-columns: 1fr; }
@@ -685,15 +751,38 @@
                 <h2>Exercices d'Entraînement</h2>
                 <div>
                     <button class="btn btn-green add-exercise-btn" onclick="openExerciseModal()">➕ Créer un exercice</button>
-                    <button class="btn btn-blue  add-exercise-btn" onclick="document.getElementById('importExercisesInput').click()">📥 Importer des exercices</button>
-                    <button class="btn btn-blue  add-exercise-btn" onclick="exportExercises()">📤 Exporter les exercices</button>
-                    <input type="file" id="importExercisesInput" accept="application/json,.json" style="display:none" onchange="importExercises(event)">
-                    <button class="btn btn-teal  add-exercise-btn" onclick="saveCompleteSession()">💾 Sauvegarder la séance</button>
-                    <button class="btn btn-blue  add-exercise-btn" onclick="configureSyncKey()">🔑 Clé de synchro</button>
-                    <button class="btn btn-blue  add-exercise-btn" onclick="syncFetchAll(true)">🔄 Actualiser</button>
+                    <details class="more-actions">
+                        <summary class="btn btn-blue add-exercise-btn">⋯ Plus d'actions</summary>
+                        <div class="more-actions-menu">
+                            <button class="btn btn-blue add-exercise-btn" onclick="document.getElementById('importExercisesInput').click()">📥 Importer des exercices</button>
+                            <button class="btn btn-blue add-exercise-btn" onclick="exportExercises()">📤 Exporter les exercices</button>
+                            <input type="file" id="importExercisesInput" accept="application/json,.json" style="display:none" onchange="importExercises(event)">
+                            <button class="btn btn-blue add-exercise-btn" onclick="configureSyncKey()">🔑 Clé de synchro</button>
+                            <button class="btn btn-blue add-exercise-btn" onclick="syncFetchAll(true)">🔄 Actualiser</button>
+                        </div>
+                    </details>
                 </div>
             </div>
             <div id="syncStatus" style="text-align:center;font-size:.85em;color:#666;margin-bottom:10px;"></div>
+
+            <div class="session-cart">
+                <div class="session-cart-header">
+                    <h3>🧺 Séance en cours</h3>
+                    <div class="session-cart-target">
+                        <label for="sessionTargetDuration">🎯 Durée cible</label>
+                        <input type="number" id="sessionTargetDuration" min="0" step="5" style="width:70px" onchange="onTargetDurationChange()"> min
+                    </div>
+                </div>
+                <div id="sessionCartList" class="session-cart-list"></div>
+                <div class="session-cart-footer">
+                    <div id="sessionCartTotal" class="session-cart-total"></div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-red  session-cart-btn" onclick="clearSessionCart()">🗑️ Vider</button>
+                        <button class="btn btn-teal session-cart-btn" onclick="saveCompleteSession()">💾 Sauvegarder cette séance</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="categoryFilters" class="category-filters" role="tablist" aria-label="Filtrer les exercices par catégorie"></div>
             <div id="exerciseGrid" class="exercise-grid"></div>
 
@@ -1010,6 +1099,7 @@ async function syncFetchAll(showErrors) {
         displayExercises();
         displaySavedSchemas();
         displaySavedSessions();
+        renderSessionCart();
         setSyncStatus('✅ Synchronisé avec le serveur', 'var(--kdc-success)');
         if (showErrors) showToast('✅ Données actualisées depuis le serveur !');
     } catch (err) {
@@ -1116,9 +1206,115 @@ function displayExercises() {
                 <div style="font-size:.8em;font-weight:600;margin-bottom:6px;">🎨 Schéma : ${escapeHtml(ex.linkedSchema.name)}</div>
                 ${ex.linkedSchema.thumbnail ? `<img src="${ex.linkedSchema.thumbnail}" alt="${escapeHtml(ex.linkedSchema.name)}" style="width:100%;border-radius:6px;object-fit:contain;max-height:100px;background:#fff;">` : ''}
             </div>` : ''}
+            <button class="add-to-session-btn${sessionCart.includes(ex.id) ? ' in-session' : ''}" onclick="toggleSessionCart('${ex.id}')">
+                ${sessionCart.includes(ex.id) ? '✓ Dans la séance — retirer' : '➕ Ajouter à la séance'}
+            </button>
         `;
         grid.appendChild(card);
     });
+}
+
+/* ═══════════════════════════════════════════════════
+   PANIER DE SÉANCE
+   Corrige le principal manque identifié en test coach : "Sauvegarder
+   la séance" snapshottait TOUTE la bibliothèque au lieu d'une sélection
+   ordonnée pour l'entraînement du jour. Le panier persiste en localStorage
+   (id + ordre) pour survivre à un rechargement pendant la préparation.
+═══════════════════════════════════════════════════ */
+let sessionCart = ls.get('kdcSessionCart', []);
+
+function saveSessionCart() { ls.set('kdcSessionCart', sessionCart); }
+
+function toggleSessionCart(id) {
+    const idx = sessionCart.indexOf(id);
+    if (idx === -1) sessionCart.push(id); else sessionCart.splice(idx, 1);
+    saveSessionCart();
+    displayExercises();
+    renderSessionCart();
+}
+
+function removeFromSessionCart(id) {
+    sessionCart = sessionCart.filter(x => x !== id);
+    saveSessionCart();
+    displayExercises();
+    renderSessionCart();
+}
+
+function moveSessionCartItem(id, direction) {
+    const i = sessionCart.indexOf(id);
+    const j = i + direction;
+    if (i === -1 || j < 0 || j >= sessionCart.length) return;
+    [sessionCart[i], sessionCart[j]] = [sessionCart[j], sessionCart[i]];
+    saveSessionCart();
+    renderSessionCart();
+}
+
+function clearSessionCart() {
+    if (!sessionCart.length) return;
+    if (!confirm('Vider la séance en cours de préparation ?')) return;
+    sessionCart = [];
+    saveSessionCart();
+    displayExercises();
+    renderSessionCart();
+}
+
+function onTargetDurationChange() {
+    const val = parseInt(document.getElementById('sessionTargetDuration').value) || 0;
+    localStorage.setItem('kdcSessionTargetDuration', String(val));
+    renderSessionCart();
+}
+
+function renderSessionCart() {
+    const list = document.getElementById('sessionCartList');
+    const totalEl = document.getElementById('sessionCartTotal');
+    const targetInput = document.getElementById('sessionTargetDuration');
+    if (!list || !totalEl) return;
+
+    if (targetInput && !targetInput.value) {
+        targetInput.value = localStorage.getItem('kdcSessionTargetDuration') || '90';
+    }
+    const target = parseInt(targetInput ? targetInput.value : 0) || 0;
+
+    // Un exercice supprimé de la bibliothèque après avoir été ajouté au
+    // panier disparaît silencieusement ici plutôt que de planter l'affichage.
+    const items = sessionCart.map(id => customExercises.find(ex => ex.id === id)).filter(Boolean);
+    if (items.length !== sessionCart.length) {
+        sessionCart = items.map(ex => ex.id);
+        saveSessionCart();
+    }
+
+    if (!items.length) {
+        list.innerHTML = '<div class="session-cart-empty">Aucun exercice ajouté — clique sur « ➕ Ajouter à la séance » sous un exercice ci-dessous.</div>';
+    } else {
+        list.innerHTML = items.map((ex, i) => {
+            const cat = CATEGORIES[ex.category] || CATEGORIES['non-classe'];
+            return `
+            <div class="session-cart-item">
+                <span class="position">${i + 1}.</span>
+                <div class="info">
+                    <div class="name">${escapeHtml(ex.icon || '📋')} ${escapeHtml(ex.name)}</div>
+                    <div class="meta">${cat.icon} ${cat.label} · ⏱️ ${Number(ex.duration) || 0} min</div>
+                </div>
+                <div class="actions">
+                    <button onclick="moveSessionCartItem('${ex.id}', -1)" ${i === 0 ? 'disabled' : ''} aria-label="Monter ${escapeHtml(ex.name)}">▲</button>
+                    <button onclick="moveSessionCartItem('${ex.id}', 1)" ${i === items.length - 1 ? 'disabled' : ''} aria-label="Descendre ${escapeHtml(ex.name)}">▼</button>
+                    <button class="remove-btn" onclick="removeFromSessionCart('${ex.id}')" aria-label="Retirer ${escapeHtml(ex.name)} de la séance">✕</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    const total = items.reduce((s, ex) => s + (Number(ex.duration) || 0), 0);
+    let color = 'var(--kdc-abysse)';
+    let hint = '';
+    if (target > 0) {
+        const diff = total - target;
+        if (Math.abs(diff) <= 10) { color = 'var(--kdc-success)'; }
+        else if (diff > 10) { color = 'var(--kdc-danger)'; hint = ` (+${diff} min vs cible)`; }
+        else { color = 'var(--kdc-ambre-dark)'; hint = ` (${diff} min vs cible)`; }
+    }
+    totalEl.style.color = color;
+    totalEl.textContent = `⏱️ Total : ${total} min${hint}`;
 }
 
 function openExerciseModal() {
@@ -1991,15 +2187,29 @@ function deleteSchema(i) {
 let savedSessions = ls.get('dodgeballCompleteSessions', []);
 
 function saveCompleteSession() {
+    if (!sessionCart.length) {
+        showToast('⚠️ Ajoute au moins un exercice à la séance avant de sauvegarder', 'var(--kdc-ambre-dark)');
+        return;
+    }
     const name = prompt('Nom de la séance :');
     if (!name) return;
+
+    // Snapshot dans l'ordre choisi — pas toute la bibliothèque, seulement
+    // la sélection du panier. Les schémas liés à ces exercices sont
+    // embarqués automatiquement (dédupliqués par nom).
+    const sessionExercises = sessionCart
+        .map(id => customExercises.find(ex => ex.id === id))
+        .filter(Boolean);
+    const linkedNames = new Set(sessionExercises.filter(e => e.linkedSchema).map(e => e.linkedSchema.name));
+    const sessionSchemas = savedSchemas.filter(s => linkedNames.has(s.name));
+
     const session = {
         id:        'session-' + Date.now(),
         name,
         date:      new Date().toLocaleDateString('fr-FR'),
         datetime:  new Date().toISOString(),
-        exercises: JSON.parse(JSON.stringify(customExercises)),
-        schemas:   JSON.parse(JSON.stringify(savedSchemas)),
+        exercises: JSON.parse(JSON.stringify(sessionExercises)),
+        schemas:   JSON.parse(JSON.stringify(sessionSchemas)),
         timestamp: Date.now()
     };
     savedSessions.unshift(session);
@@ -2011,6 +2221,12 @@ function saveCompleteSession() {
     displaySavedSessions();
     showToast(`✅ Séance "${name}" sauvegardée avec succès !`);
     syncPush('sessions', session);
+
+    // La séance est enregistrée : on repart d'un panier vide pour la prochaine.
+    sessionCart = [];
+    saveSessionCart();
+    displayExercises();
+    renderSessionCart();
 }
 
 function displaySavedSessions() {
@@ -2191,6 +2407,7 @@ displaySavedSessions();
 updatePlotList();
 updateNotesList();
 updateStorageIndicator();
+renderSessionCart();
 syncFetchAll(false);
 </script>
 </body>
