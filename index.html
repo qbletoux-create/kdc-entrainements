@@ -556,29 +556,33 @@
         }
         .delete-note-btn:hover { background: #b8392f; }
 
-        /* ── Plot list ── */
+        /* ── Plot list ──
+           Volontairement compacte : elle fait doublon avec les noms déjà
+           affichés sur le terrain, elle ne sert qu'à supprimer/renommer un
+           plot précis sans avoir à viser un petit triangle sur le dessin. */
         .plot-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px;
+            padding: 5px 8px;
             background: var(--kdc-nacre);
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
             transition: background .2s;
+            font-size: .88em;
         }
         .plot-item:hover   { background: var(--kdc-ecume); }
         .plot-item:focus-visible { outline: 3px solid var(--kdc-marine); outline-offset: 2px; }
         .plot-item.selected { background: var(--kdc-marine); color: var(--kdc-nacre); }
 
-        .plot-info { display: flex; align-items: center; gap: 10px; word-break: break-word; }
-        .plot-color { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; }
+        .plot-info { display: flex; align-items: center; gap: 7px; word-break: break-word; }
+        .plot-color { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
 
         .delete-plot-btn {
             background: var(--kdc-danger);
             color: #fff;
             border: none;
-            padding: 4px 8px;
+            padding: 2px 7px;
             border-radius: 4px;
             cursor: pointer;
             font-size: .8em;
@@ -1824,7 +1828,9 @@ canvas.addEventListener('pointerup', e => {
         const text = prompt('Entrez votre texte :');
         if (text) { el.text = text; elements.push(el); } else { mutated = false; }
     } else if (currentTool === 'plot') {
-        const name = prompt('Nom du plot (optionnel) :') || `Plot ${plots.length + 1}`;
+        // Nom par défaut sans interruption — on ne demande plus à chaque pose,
+        // le nom se change ensuite d'un double-clic dans la liste si besoin.
+        const name = `Plot ${plots.length + 1}`;
         el.name = name;
         elements.push(el);
         plots.push({ id: Date.now(), name, color: currentColor, x: startX, y: startY });
@@ -1954,6 +1960,7 @@ function updatePlotList() {
         item.setAttribute('role', 'button');
         item.setAttribute('tabindex', '0');
         item.setAttribute('aria-pressed', selectedPlot === i ? 'true' : 'false');
+        item.title = 'Double-clic pour renommer';
         item.innerHTML = `
             <div class="plot-info">
                 <div class="plot-color" style="background:${p.color};"></div>
@@ -1961,9 +1968,37 @@ function updatePlotList() {
             </div>
             <button class="delete-plot-btn" onclick="deletePlot(${i});event.stopPropagation();" aria-label="Supprimer le plot ${escapeHtml(p.name)}">✕</button>`;
         item.onclick = () => { selectedPlot = i; updatePlotList(); };
+        item.ondblclick = () => renamePlot(i);
         item.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectedPlot = i; updatePlotList(); } };
         list.appendChild(item);
     });
+}
+
+// Retrouve l'élément 'plot' du dessin (tableau elements) correspondant au
+// n-ième plot de la liste — même comptage que deletePlot, car un plot vit
+// dans deux tableaux parallèles (elements pour le rendu, plots pour la liste).
+function findPlotElement(index) {
+    let plotIdx = 0;
+    for (const el of elements) {
+        if (el.type === 'plot') {
+            if (plotIdx === index) return el;
+            plotIdx++;
+        }
+    }
+    return null;
+}
+
+function renamePlot(index) {
+    const current = plots[index];
+    if (!current) return;
+    const name = prompt('Nom du plot :', current.name);
+    if (!name || !name.trim()) return;
+    current.name = name.trim();
+    const el = findPlotElement(index);
+    if (el) el.name = name.trim();
+    updatePlotList();
+    redrawCanvas();
+    pushHistory();
 }
 
 function deletePlot(index) {
@@ -1992,12 +2027,13 @@ function clearCanvas() {
 // Miniature réduite (450×300) et compressée en JPEG plutôt qu'en PNG plein
 // format : le localStorage a une limite de quelques Mo, et des dizaines de
 // schémas en PNG 900×600 la remplissent vite.
+// PNG en pleine résolution : un schéma dessiné (terrain + formes en aplats de
+// couleur) compresse quasiment aussi bien en PNG sans perte qu'en JPEG
+// compressé (~35 Ko dans les deux cas), mais sans les artefacts qui rendaient
+// l'image illisible une fois agrandie dans l'export PDF/Word. Le JPEG à
+// résolution réduite d'avant économisait du stockage pour rien.
 function makeThumbnail() {
-    const tmp = document.createElement('canvas');
-    tmp.width = canvas.width / 2;
-    tmp.height = canvas.height / 2;
-    tmp.getContext('2d').drawImage(canvas, 0, 0, tmp.width, tmp.height);
-    return tmp.toDataURL('image/jpeg', 0.7);
+    return canvas.toDataURL('image/png');
 }
 
 function saveSchema() {
@@ -2142,7 +2178,7 @@ function displaySavedSessions() {
             </div>
             <div class="schema-actions" style="margin-top:15px;">
                 <button class="schema-btn load-btn"          onclick="loadSession(${i});event.stopPropagation();">Charger</button>
-                <button class="schema-btn btn-green"         onclick="exportSessionToWord(${i});event.stopPropagation();" style="background:var(--kdc-marine);">📄 Word</button>
+                <button class="schema-btn btn-green"         onclick="exportSessionToPDF(${i});event.stopPropagation();" style="background:var(--kdc-marine);">📄 PDF</button>
                 <button class="schema-btn delete-schema-btn" onclick="deleteSession(${i});event.stopPropagation();">Supprimer</button>
             </div>`;
         list.appendChild(item);
@@ -2175,7 +2211,7 @@ function deleteSession(i) {
 /* ═══════════════════════════════════════════════════
    EXPORT WORD
 ═══════════════════════════════════════════════════ */
-function exportSessionToWord(idx) {
+function exportSessionToPDF(idx) {
     const sess      = savedSessions[idx];
     const exercises = sess.exercises || [];
     const schemas   = sess.schemas   || [];
@@ -2217,7 +2253,7 @@ function exportSessionToWord(idx) {
         <div class="schema" style="margin-top:16px;">
             <div class="schema-title">🎨 Schéma associé : ${escapeHtml(ex.linkedSchema.name)}</div>
             <div style="font-size:13px;color:#666;margin-bottom:10px;">📅 Créé le : ${escapeHtml(ex.linkedSchema.date)}</div>
-            ${ex.linkedSchema.thumbnail ? `<div style="text-align:center;margin:16px 0;padding:12px;background:#fff;border-radius:8px;border:1px solid #ddd;"><img src="${ex.linkedSchema.thumbnail}" alt="${escapeHtml(ex.linkedSchema.name)}" width="567" height="378" style="width:15.0cm;height:10.0cm;mso-width-source:userset;mso-height-source:userset;border-radius:6px;"></div>` : ''}
+            ${ex.linkedSchema.thumbnail ? `<div style="text-align:center;margin:16px 0;padding:12px;background:#fff;border-radius:8px;border:1px solid #ddd;"><img src="${ex.linkedSchema.thumbnail}" alt="${escapeHtml(ex.linkedSchema.name)}" style="width:100%;max-width:15cm;border-radius:6px;"></div>` : ''}
         </div>` : ''}
     </div>`).join('');
 
@@ -2227,7 +2263,7 @@ function exportSessionToWord(idx) {
     <div class="schema">
         <div class="schema-title">🎨 Schéma ${i+1} : ${escapeHtml(s.name)}</div>
         <div style="font-size:13px;color:#666;margin-bottom:10px;">📅 Créé le : ${escapeHtml(s.date)}</div>
-        ${s.thumbnail ? `<div style="text-align:center;margin:16px 0;padding:12px;background:#fff;border-radius:8px;border:1px solid #ddd;"><img src="${s.thumbnail}" alt="${escapeHtml(s.name)}" width="567" height="378" style="width:15.0cm;height:10.0cm;mso-width-source:userset;mso-height-source:userset;border-radius:6px;"></div>` : ''}
+        ${s.thumbnail ? `<div style="text-align:center;margin:16px 0;padding:12px;background:#fff;border-radius:8px;border:1px solid #ddd;"><img src="${s.thumbnail}" alt="${escapeHtml(s.name)}" style="width:100%;max-width:15cm;border-radius:6px;"></div>` : ''}
         ${s.notes && s.notes.length ? `<div style="margin-top:12px;"><strong style="font-size:14px;">📝 Notes tactiques :</strong><ul style="margin-top:6px;">${s.notes.map((n,j) => `<li class="note">${j+1}. ${escapeHtml(n.text)}</li>`).join('')}</ul></div>` : ''}
     </div>`).join('');
 
@@ -2246,10 +2282,10 @@ h2{color:#fff;background:#243455;margin-top:40px;padding:14px 20px;border-radius
 .toc-table tr:last-child td{border-bottom:none}
 .toc-table tr:hover td{background:#f4f8fb}
 .toc-total{background:#f4f8fb;padding:10px 14px;font-size:13px;color:#555;text-align:right;border-top:2px solid #e0e0e0}
-.exercise{background:#fff;padding:22px 25px;margin:18px 0;border-radius:10px;border:1px solid #e8e8e8;border-left:5px solid #015394;page-break-inside:avoid}
+.exercise{background:#fff;padding:22px 25px;margin:18px 0;border-radius:10px;border:1px solid #e8e8e8;border-left:5px solid #015394;page-break-inside:avoid;break-inside:avoid}
 .exercise-title{font-weight:bold;font-size:17px;color:#243455;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0f0f0}
 .exercise-detail{margin:7px 0;color:#444;padding-left:10px;font-size:14px}
-.schema{background:#fdf7e8;padding:20px 25px;margin:18px 0;border-radius:10px;border:1px solid #f8bf4e;border-left:5px solid #d29c1d;page-break-inside:avoid}
+.schema{background:#fdf7e8;padding:20px 25px;margin:18px 0;border-radius:10px;border:1px solid #f8bf4e;border-left:5px solid #d29c1d;page-break-inside:avoid;break-inside:avoid}
 .schema-title{font-weight:bold;font-size:16px;color:#01416f;margin-bottom:8px}
 .note{background:#fdf0d3;padding:12px 16px;margin:8px 0;border-radius:6px;border-left:3px solid #d29c1d;font-size:14px}
 ul{list-style-type:none;padding:0}li{margin:8px 0}
@@ -2277,14 +2313,23 @@ ${unlinked.length  ? `<h2>🎯 SCHÉMAS TACTIQUES</h2>${bodySch}` : ''}
 </div>
 </body></html>`;
 
-    const a = document.createElement('a');
-    a.href     = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
-    a.download = `seance_${sess.name.replace(/[^a-z0-9]/gi, '_')}_${sess.date.replace(/\//g, '-')}.doc`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
-    showToast('✅ Document Word exporté !');
+    // Impression native du navigateur plutôt qu'un faux fichier .doc : Word
+    // ignorait la résolution réelle des images de schéma et cassait la mise
+    // en page (page-break-inside mal respecté). Chrome/Edge rendent ce même
+    // HTML en PDF net et correctement paginé via « Enregistrer en PDF ».
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(html);
+    iframe.contentDocument.close();
+    iframe.onload = () => {
+        const win = iframe.contentWindow;
+        win.addEventListener('afterprint', () => { if (iframe.parentNode) document.body.removeChild(iframe); });
+        win.focus();
+        win.print();
+    };
+    showToast('📄 Choisis « Enregistrer en PDF » comme imprimante dans la fenêtre qui s\'ouvre');
 }
 
 /* ═══════════════════════════════════════════════════
