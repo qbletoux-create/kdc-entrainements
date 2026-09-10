@@ -308,6 +308,29 @@
         .exercise-card h3 { margin-bottom: 15px; font-size: 1.15em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .exercise-card p  { line-height: 1.6; margin-bottom: 10px; font-size: .95em; }
 
+        .consignes-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .consignes-text.expanded {
+            -webkit-line-clamp: unset;
+            overflow: visible;
+        }
+        .read-more-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--kdc-ambre);
+            font-weight: 700;
+            font-size: .85em;
+            cursor: pointer;
+            padding: 0 0 10px;
+            margin-top: -6px;
+        }
+        .read-more-btn:hover { text-decoration: underline; }
+
         .duration {
             background: rgba(255,255,255,.18);
             padding: 5px 10px;
@@ -1211,7 +1234,8 @@ function displayExercises() {
             </div>
             ${ex.but       ? `<p><strong>🎯 But :</strong> ${escapeHtml(ex.but)}</p>` : ''}
             ${ex.objectifs ? `<p><strong>📌 Objectifs :</strong> ${escapeHtml(ex.objectifs)}</p>` : ''}
-            <p><strong>📋 Consignes :</strong> ${escapeHtml(ex.description)}</p>
+            <p class="consignes-text"><strong>📋 Consignes :</strong> ${escapeHtml(ex.description)}</p>
+            <button type="button" class="read-more-btn" onclick="toggleReadMore(this)">Lire la suite ▾</button>
             <span class="duration">⏱️ ${Number(ex.duration) || 0} min</span>
             ${ex.linkedSchema ? `
             <div style="margin-top:12px;padding:8px;background:rgba(255,255,255,.15);border-radius:8px;">
@@ -1223,7 +1247,18 @@ function displayExercises() {
             </button>
         `;
         grid.appendChild(card);
+        const consignesEl = card.querySelector('.consignes-text');
+        const readMoreBtn = card.querySelector('.read-more-btn');
+        if (consignesEl && readMoreBtn && consignesEl.scrollHeight > consignesEl.clientHeight + 2) {
+            readMoreBtn.style.display = 'inline-block';
+        }
     });
+}
+
+function toggleReadMore(btn) {
+    const text = btn.previousElementSibling;
+    const expanded = text.classList.toggle('expanded');
+    btn.textContent = expanded ? 'Réduire ▴' : 'Lire la suite ▾';
 }
 
 /* ═══════════════════════════════════════════════════
