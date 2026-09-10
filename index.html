@@ -290,23 +290,44 @@
 
         .exercise-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 16px;
             margin-top: 20px;
         }
 
         .exercise-card {
             background: linear-gradient(135deg, var(--kdc-abysse), var(--kdc-marine-dark));
             color: var(--kdc-nacre);
-            padding: 25px;
+            padding: 18px;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(36,52,85,.25);
             transition: transform .3s;
             position: relative;
         }
         .exercise-card:hover { transform: translateY(-5px); }
-        .exercise-card h3 { margin-bottom: 15px; font-size: 1.15em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .exercise-card h3 { margin-bottom: 8px; font-size: 1.02em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .exercise-card p  { line-height: 1.6; margin-bottom: 10px; font-size: .95em; }
+
+        /* ── Carte exercice repliée par défaut ──
+           Objectif : voir beaucoup plus d'exercices d'un coup d'œil (format
+           carré plutôt que de longues fiches) — but/objectifs/consignes/
+           schéma se déplient au clic plutôt que d'allonger la carte. */
+        .exercise-details { display: none; margin-top: 10px; }
+        .exercise-card.expanded .exercise-details { display: block; }
+        .details-toggle-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 6px;
+            font-size: .8em;
+            font-weight: 700;
+            background: rgba(255,255,255,.15);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .details-toggle-btn:hover { background: rgba(255,255,255,.28); }
 
         .consignes-text {
             display: -webkit-box;
@@ -1228,31 +1249,42 @@ function displayExercises() {
         card.innerHTML = `
             <button class="delete-exercise-btn" onclick="deleteExercise('${ex.id}')" aria-label="Supprimer l'exercice ${escapeHtml(ex.name)}">✕</button>
             <h3>${escapeHtml(ex.icon || '📋')} ${escapeHtml(ex.name)} <span class="category-badge" style="background:${cat.color};color:${cat.text};">${cat.icon} ${cat.label}</span></h3>
-            <div class="card-secondary-actions">
-                <button onclick="editExercise('${ex.id}')">✏️ Modifier</button>
-                <button onclick="duplicateExercise('${ex.id}')">⧉ Dupliquer</button>
-            </div>
-            ${ex.but       ? `<p><strong>🎯 But :</strong> ${escapeHtml(ex.but)}</p>` : ''}
-            ${ex.objectifs ? `<p><strong>📌 Objectifs :</strong> ${escapeHtml(ex.objectifs)}</p>` : ''}
-            <p class="consignes-text"><strong>📋 Consignes :</strong> ${escapeHtml(ex.description)}</p>
-            <button type="button" class="read-more-btn" onclick="toggleReadMore(this)">Lire la suite ▾</button>
             <span class="duration">⏱️ ${Number(ex.duration) || 0} min</span>
-            ${ex.linkedSchema ? `
-            <div style="margin-top:12px;padding:8px;background:rgba(255,255,255,.15);border-radius:8px;">
-                <div style="font-size:.8em;font-weight:600;margin-bottom:6px;">🎨 Schéma : ${escapeHtml(ex.linkedSchema.name)}</div>
-                ${ex.linkedSchema.thumbnail ? `<img src="${ex.linkedSchema.thumbnail}" alt="${escapeHtml(ex.linkedSchema.name)}" style="width:100%;border-radius:6px;object-fit:contain;max-height:100px;background:#fff;">` : ''}
-            </div>` : ''}
+            <button type="button" class="details-toggle-btn" onclick="toggleExerciseDetails(this)">▾ Détails</button>
+            <div class="exercise-details">
+                <div class="card-secondary-actions">
+                    <button onclick="editExercise('${ex.id}')">✏️ Modifier</button>
+                    <button onclick="duplicateExercise('${ex.id}')">⧉ Dupliquer</button>
+                </div>
+                ${ex.but       ? `<p><strong>🎯 But :</strong> ${escapeHtml(ex.but)}</p>` : ''}
+                ${ex.objectifs ? `<p><strong>📌 Objectifs :</strong> ${escapeHtml(ex.objectifs)}</p>` : ''}
+                <p class="consignes-text"><strong>📋 Consignes :</strong> ${escapeHtml(ex.description)}</p>
+                <button type="button" class="read-more-btn" onclick="toggleReadMore(this)">Lire la suite ▾</button>
+                ${ex.linkedSchema ? `
+                <div style="margin-top:12px;padding:8px;background:rgba(255,255,255,.15);border-radius:8px;">
+                    <div style="font-size:.8em;font-weight:600;margin-bottom:6px;">🎨 Schéma : ${escapeHtml(ex.linkedSchema.name)}</div>
+                    ${ex.linkedSchema.thumbnail ? `<img src="${ex.linkedSchema.thumbnail}" alt="${escapeHtml(ex.linkedSchema.name)}" style="width:100%;border-radius:6px;object-fit:contain;max-height:100px;background:#fff;">` : ''}
+                </div>` : ''}
+            </div>
             <button class="add-to-session-btn${sessionCart.includes(ex.id) ? ' in-session' : ''}" onclick="toggleSessionCart('${ex.id}')">
                 ${sessionCart.includes(ex.id) ? '✓ Dans la séance — retirer' : '➕ Ajouter à la séance'}
             </button>
         `;
         grid.appendChild(card);
+    });
+}
+
+function toggleExerciseDetails(btn) {
+    const card = btn.closest('.exercise-card');
+    const expanded = card.classList.toggle('expanded');
+    btn.textContent = expanded ? '▴ Réduire' : '▾ Détails';
+    if (expanded) {
         const consignesEl = card.querySelector('.consignes-text');
         const readMoreBtn = card.querySelector('.read-more-btn');
         if (consignesEl && readMoreBtn && consignesEl.scrollHeight > consignesEl.clientHeight + 2) {
             readMoreBtn.style.display = 'inline-block';
         }
-    });
+    }
 }
 
 function toggleReadMore(btn) {
