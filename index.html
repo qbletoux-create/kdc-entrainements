@@ -783,6 +783,7 @@
             .add-exercise-btn { font-size: .85em; padding: 10px 16px; }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" integrity="sha384-4xaIisuLEy2lo2HkB2C4rEf7v8jbTb2kuogX6TkuEt9feTWKBSFSOzsqNNbV+sKh" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="container">
@@ -2246,6 +2247,7 @@ function displaySavedSessions() {
             <div class="schema-actions" style="margin-top:15px;">
                 <button class="schema-btn load-btn"          onclick="loadSession(${i});event.stopPropagation();">Charger</button>
                 <button class="schema-btn btn-green"         onclick="exportSessionToPDF(${i});event.stopPropagation();" style="background:var(--kdc-marine);">📄 PDF</button>
+                <button class="schema-btn btn-green"         onclick="exportSessionToWord(${i});event.stopPropagation();" style="background:var(--kdc-blue,#015394);">📝 Word</button>
                 <button class="schema-btn delete-schema-btn" onclick="deleteSession(${i});event.stopPropagation();">Supprimer</button>
             </div>`;
         list.appendChild(item);
@@ -2397,6 +2399,219 @@ ${unlinked.length  ? `<h2>🎯 SCHÉMAS TACTIQUES</h2>${bodySch}` : ''}
         win.print();
     };
     showToast('📄 Choisis « Enregistrer en PDF » comme imprimante dans la fenêtre qui s\'ouvre');
+}
+
+/* ═══════════════════════════════════════════════════
+   EXPORT WORD (.docx réel, via la librairie docx)
+═══════════════════════════════════════════════════ */
+function dataUrlToUint8Array(dataUrl) {
+    const base64 = dataUrl.split(',')[1] || '';
+    const binary = atob(base64);
+    const bytes  = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+}
+
+// Dimensions réelles d'une image PNG (largeur/hauteur en px) lues dans son
+// en-tête, pour l'insérer dans le .docx avec le bon ratio sans la déformer.
+function pngDimensions(bytes) {
+    return { width: (bytes[16] << 24 | bytes[17] << 16 | bytes[18] << 8 | bytes[19]) >>> 0,
+             height: (bytes[20] << 24 | bytes[21] << 16 | bytes[22] << 8 | bytes[23]) >>> 0 };
+}
+
+async function exportSessionToWord(idx) {
+    if (typeof docx === 'undefined') {
+        showToast('⚠️ Librairie Word non chargée, vérifie ta connexion internet', 'var(--kdc-ambre-dark)');
+        return;
+    }
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, Table, TableRow, TableCell,
+            WidthType, AlignmentType, BorderStyle, ShadingType, VerticalAlign } = docx;
+
+    const sess      = savedSessions[idx];
+    const exercises = sess.exercises || [];
+    const schemas   = sess.schemas   || [];
+    const totalMin  = exercises.reduce((s, e) => s + (e.duration || 0), 0);
+    const linkedNames = new Set(exercises.filter(e => e.linkedSchema).map(e => e.linkedSchema.name));
+    const unlinked     = schemas.filter(s => !linkedNames.has(s.name));
+
+    const NAVY = '243455', BLUE = '015394', GOLD = 'd29c1d', LIGHT = 'f4f8fb', BORDER = 'e0e0e0';
+    const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+    const cellBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
+
+    const heading = (text) => new Paragraph({
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 400, after: 200 },
+        shading: { type: ShadingType.CLEAR, fill: NAVY },
+        children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 24 })]
+    });
+
+    const detail = (label, value) => new Paragraph({
+        spacing: { after: 60 },
+        children: [new TextRun({ text: label + ' ', bold: true, color: NAVY, size: 21 }),
+                   new TextRun({ text: String(value), size: 21 })]
+    });
+
+    // Image d'un schéma, mise à l'échelle en gardant son ratio (largeur max ~15cm)
+    function schemaImage(thumbnail) {
+        if (!thumbnail) return null;
+        try {
+            const bytes = dataUrlToUint8Array(thumbnail);
+            const dim   = pngDimensions(bytes);
+            const maxW  = 500; // px à l'écran ~ 13cm
+            const ratio = dim.width ? Math.min(1, maxW / dim.width) : 1;
+            return new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { before: 100, after: 100 },
+                children: [new ImageRun({ data: bytes, type: 'png',
+                    transformation: { width: Math.round(dim.width * ratio) || maxW, height: Math.round(dim.height * ratio) || 300 } })]
+            });
+        } catch (e) { return null; }
+    }
+
+    // ─── Page de garde + infos séance ───
+    const infoTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [new TableRow({ children: [new TableCell({
+            shading: { type: ShadingType.CLEAR, fill: LIGHT },
+            borders: cellBorders,
+            margins: { top: 150, bottom: 150, left: 200, right: 200 },
+            children: [
+                new Paragraph({ children: [new TextRun({ text: '📋 Nom de la séance : ', bold: true, color: BLUE }), new TextRun(String(sess.name))] }),
+                new Paragraph({ children: [new TextRun({ text: '📅 Date : ', bold: true, color: BLUE }), new TextRun(String(sess.date))] }),
+                new Paragraph({ children: [new TextRun({ text: '⏰ Créée le : ', bold: true, color: BLUE }), new TextRun(new Date(sess.datetime).toLocaleString('fr-FR'))] }),
+                new Paragraph({ children: [new TextRun({ text: '⏱️ Durée totale estimée : ', bold: true, color: BLUE }), new TextRun(totalMin + ' minutes')] })
+            ]
+        })] })]
+    });
+
+    // ─── Sommaire (table simple, sans liens hypertexte internes) ───
+    const tocRows = [];
+    if (exercises.length) {
+        tocRows.push(new TableRow({ children: [new TableCell({
+            columnSpan: 2, shading: { type: ShadingType.CLEAR, fill: NAVY }, borders: cellBorders,
+            margins: { top: 80, bottom: 80, left: 150, right: 150 },
+            children: [new Paragraph({ children: [new TextRun({ text: `📋 EXERCICES (${exercises.length})`, bold: true, color: 'FFFFFF', size: 18 })] })]
+        })] }));
+        exercises.forEach((ex, i) => {
+            tocRows.push(new TableRow({ children: [
+                new TableCell({ width: { size: 80, type: WidthType.PERCENTAGE }, borders: cellBorders, margins: { top: 60, bottom: 60, left: 150, right: 150 },
+                    children: [new Paragraph({ children: [new TextRun(`${ex.icon || '📍'} ${i + 1}. ${ex.name}`)] })] }),
+                new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, borders: cellBorders, verticalAlign: VerticalAlign.CENTER, margins: { top: 60, bottom: 60, left: 150, right: 150 },
+                    children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `⏱️ ${Number(ex.duration) || 0} min`, color: '888888', size: 18 })] })] })
+            ] }));
+        });
+    }
+    if (unlinked.length) {
+        tocRows.push(new TableRow({ children: [new TableCell({
+            columnSpan: 2, shading: { type: ShadingType.CLEAR, fill: NAVY }, borders: cellBorders,
+            margins: { top: 80, bottom: 80, left: 150, right: 150 },
+            children: [new Paragraph({ children: [new TextRun({ text: `🎨 SCHÉMAS TACTIQUES (${unlinked.length})`, bold: true, color: 'FFFFFF', size: 18 })] })]
+        })] }));
+        unlinked.forEach((s, i) => {
+            tocRows.push(new TableRow({ children: [
+                new TableCell({ width: { size: 80, type: WidthType.PERCENTAGE }, borders: cellBorders, margins: { top: 60, bottom: 60, left: 150, right: 150 },
+                    children: [new Paragraph({ children: [new TextRun(`🎨 ${i + 1}. ${s.name}`)] })] }),
+                new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, borders: cellBorders, verticalAlign: VerticalAlign.CENTER, margins: { top: 60, bottom: 60, left: 150, right: 150 },
+                    children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: String(s.date), color: '888888', size: 18 })] })] })
+            ] }));
+        });
+    }
+    const tocTable = tocRows.length ? new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tocRows }) : null;
+
+    // ─── Corps : exercices ───
+    const exerciseBlocks = [];
+    exercises.forEach((ex, i) => {
+        const rows = [new TableRow({ children: [new TableCell({
+            shading: { type: ShadingType.CLEAR, fill: 'FFFFFF' },
+            borders: { top: cellBorders.top, bottom: cellBorders.bottom, left: { style: BorderStyle.SINGLE, size: 24, color: BLUE }, right: cellBorders.right },
+            margins: { top: 200, bottom: 200, left: 250, right: 250 },
+            children: [
+                new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: `${ex.icon || '📍'} ${i + 1}. ${ex.name}`, bold: true, color: NAVY, size: 26 })] }),
+                ...(ex.category && CATEGORIES[ex.category] ? [detail('🏷️ Catégorie :', CATEGORIES[ex.category].label)] : []),
+                detail('⏱️ Durée :', `${Number(ex.duration) || 0} minutes`),
+                ...(ex.but ? [detail('🎯 But :', ex.but)] : []),
+                ...(ex.objectifs ? [detail('📌 Objectifs :', ex.objectifs)] : []),
+                detail('📋 Consignes :', ex.description || ''),
+                ...(ex.linkedSchema ? [
+                    new Paragraph({ spacing: { before: 150, after: 40 }, children: [new TextRun({ text: `🎨 Schéma associé : ${ex.linkedSchema.name}`, bold: true, color: BLUE, size: 22 })] }),
+                    new Paragraph({ spacing: { after: 80 }, children: [new TextRun({ text: `📅 Créé le : ${ex.linkedSchema.date}`, color: '666666', size: 18 })] }),
+                    ...(schemaImage(ex.linkedSchema.thumbnail) ? [schemaImage(ex.linkedSchema.thumbnail)] : [])
+                ] : [])
+            ]
+        })] })];
+        exerciseBlocks.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
+        exerciseBlocks.push(new Paragraph({ text: '', spacing: { after: 150 } }));
+    });
+    if (!exercises.length) exerciseBlocks.push(new Paragraph({ children: [new TextRun({ text: 'Aucun exercice défini pour cette séance.', italics: true })] }));
+
+    // ─── Corps : schémas non liés ───
+    const schemaBlocks = [];
+    unlinked.forEach((s, i) => {
+        const noteParas = (s.notes || []).map((n, j) => new Paragraph({
+            spacing: { after: 60 }, indent: { left: 200 },
+            children: [new TextRun({ text: `${j + 1}. ${n.text}`, size: 20 })]
+        }));
+        const rows = [new TableRow({ children: [new TableCell({
+            shading: { type: ShadingType.CLEAR, fill: 'FDF7E8' },
+            borders: { top: cellBorders.top, bottom: cellBorders.bottom, left: { style: BorderStyle.SINGLE, size: 24, color: GOLD }, right: cellBorders.right },
+            margins: { top: 200, bottom: 200, left: 250, right: 250 },
+            children: [
+                new Paragraph({ spacing: { after: 80 }, children: [new TextRun({ text: `🎨 Schéma ${i + 1} : ${s.name}`, bold: true, color: '01416F', size: 24 })] }),
+                new Paragraph({ spacing: { after: 100 }, children: [new TextRun({ text: `📅 Créé le : ${s.date}`, color: '666666', size: 18 })] }),
+                ...(schemaImage(s.thumbnail) ? [schemaImage(s.thumbnail)] : []),
+                ...(noteParas.length ? [new Paragraph({ spacing: { before: 120, after: 60 }, children: [new TextRun({ text: '📝 Notes tactiques :', bold: true, size: 20 })] }), ...noteParas] : [])
+            ]
+        })] })];
+        schemaBlocks.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
+        schemaBlocks.push(new Paragraph({ text: '', spacing: { after: 150 } }));
+    });
+
+    const now = new Date();
+    const doc = new Document({
+        sections: [{
+            properties: { page: { margin: { top: 1000, bottom: 1000, left: 900, right: 900 } } },
+            children: [
+                new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 },
+                    border: { bottom: { style: BorderStyle.SINGLE, size: 24, color: 'F8BF4E' } },
+                    children: [new TextRun({ text: '🐙 SÉANCE D\'ENTRAÎNEMENT — KRAKENS DODGEBALL CLUB', bold: true, color: NAVY, size: 32 })]
+                }),
+                infoTable,
+                new Paragraph({ text: '', spacing: { after: 200 } }),
+                ...(tocTable ? [
+                    new Paragraph({ spacing: { after: 100 }, children: [new TextRun({ text: '📑 TABLE DES MATIÈRES', bold: true, color: NAVY, size: 22 })] }),
+                    tocTable,
+                    new Paragraph({ text: '', spacing: { after: 200 } })
+                ] : []),
+                heading('📋 EXERCICES DE LA SÉANCE'),
+                ...exerciseBlocks,
+                ...(unlinked.length ? [heading('🎯 SCHÉMAS TACTIQUES'), ...schemaBlocks] : []),
+                new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    spacing: { before: 300 },
+                    border: { top: { style: BorderStyle.SINGLE, size: 12, color: BORDER } },
+                    children: [new TextRun({ text: `Krakens Dodgeball Club — document généré automatiquement par le Programme d'Entraînement — ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR')}`, color: '666666', size: 18 })]
+                })
+            ]
+        }]
+    });
+
+    try {
+        const blob = await Packer.toBlob(doc);
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = `Seance_${(sess.name || 'entrainement').replace(/[^\w\-]+/g, '_')}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('✅ Document Word généré !');
+    } catch (e) {
+        console.error(e);
+        showToast('⚠️ Erreur lors de la génération du Word', 'var(--kdc-ambre-dark)');
+    }
 }
 
 /* ═══════════════════════════════════════════════════
